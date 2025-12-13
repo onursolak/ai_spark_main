@@ -270,31 +270,31 @@ export default function Desktop({ viewMode, onToggleFavorite, isFavorite, onView
                         <button className='search-btn'
                             onClick={()=> {
 
-                                console.log(ilceler?.find(i=> i.id == secilenIlceId)?.name)
+                                console.log(ilceler?.find(i=> i.id === secilenIlceId)?.name)
                                 console.log(secilenMahalle)
                                 console.log(secilenOda)
                                 console.log(minMetrekare)
                                 console.log(secilenKat)
 
 
-                                const secilenIlceIsmi = ilceler?.find(i => i.id == secilenIlceId)?.name;
+                                const secilenIlceIsmi = ilceler?.find(i => i.id === secilenIlceId)?.name;
 
                                 const sonuc = jsonDatas.filter(i => {
                                     // 1. İlçe Kontrolü (Seçilmediyse VEYA Eşleşiyorsa)
-                                    const ilceUyuyor = !secilenIlceId || i["District"] == secilenIlceIsmi;
+                                    const ilceUyuyor = !secilenIlceId || i["District"] === secilenIlceIsmi;
 
                                     // 2. Mahalle Kontrolü
-                                    const mahalleUyuyor = !secilenMahalle || i["Neighborhood"] == secilenMahalle;
+                                    const mahalleUyuyor = !secilenMahalle || i["Neighborhood"] === secilenMahalle;
 
                                     // 3. Oda Kontrolü
-                                    const odaUyuyor = !secilenOda || i["Number of rooms"] == secilenOda;
+                                    const odaUyuyor = !secilenOda || i["Number of rooms"] === secilenOda;
 
                                     // 4. Metrekare Kontrolü 
                                     // (Min dediğin için "==" yerine ">=" (büyük eşit) kullanmak daha doğrudur)
                                     const m2Uyuyor = !minMetrekare || i["m² (Gross)"] >= parseInt(minMetrekare);
 
                                     // 5. Kat Kontrolü
-                                    const katUyuyor = !secilenKat || i["Floor location"] == secilenKat;
+                                    const katUyuyor = !secilenKat || i["Floor location"] === parseInt(secilenKat);
 
                                     // HEPSİ True ise o ilanı göster
                                     return ilceUyuyor && mahalleUyuyor && odaUyuyor && m2Uyuyor && katUyuyor;

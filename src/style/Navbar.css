@@ -25,10 +25,11 @@
     gap: 14px;
     cursor: pointer;
     transition: transform 0.3s ease;
+    user-select: none;
 }
 
 .navbar-brand:hover {
-    transform: translateY(-1px);
+    transform: translateX(3px);
 }
 
 .logo-container {
@@ -36,11 +37,12 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: transform 0.3s ease;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .logo-container:hover {
-    transform: rotate(5deg) scale(1.05);
+    transform: rotate(-5deg) scale(1.1);
+    filter: drop-shadow(0 4px 12px rgba(242, 127, 14, 0.4));
 }
 
 .brand-text {
@@ -50,14 +52,25 @@
 }
 
 .brand-name {
-    font-size: 1.5rem;
-    font-weight: 800;
-    background: linear-gradient(135deg, #f27f0e 0%, #d96d0b 100%);
+    font-size: 1.6rem;
+    font-weight: 900;
+    background: linear-gradient(135deg, #f27f0e 0%, #d96d0b 50%, #f27f0e 100%);
+    background-size: 200% auto;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    letter-spacing: -0.5px;
+    letter-spacing: -0.8px;
     line-height: 1;
+    animation: gradientFlow 3s ease infinite;
+}
+
+@keyframes gradientFlow {
+    0%, 100% {
+        background-position: 0% center;
+    }
+    50% {
+        background-position: 100% center;
+    }
 }
 
 .brand-tagline {
