@@ -599,13 +599,28 @@ export default function Desktop({ viewMode, onToggleFavorite, isFavorite, onView
         <main className={`results-area ${!sidebarOpen ? 'full-width' : ''}`}>
             {viewMode === 'list' ? (
                 <>
-                    {/* İstatistik Kartları */}
-                    <div style={{
-                        display: 'grid',
-                        gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-                        gap: '20px',
-                        marginBottom: '30px'
-                    }}>
+                    {/* İstatistik Kartları ve Filtreler Butonu */}
+                    <div className="stats-filter-container">
+                        {/* Sidebar kapalıyken Filtreler Butonu */}
+                        {!sidebarOpen && (
+                            <div className="stat-card filter-button-card">
+                                <button 
+                                    className="inline-filter-btn"
+                                    onClick={() => setSidebarOpen(true)}
+                                    title="Filtreleri Göster"
+                                >
+                                    <div className="stat-card-icon" style={{background: 'linear-gradient(135deg, #f27f0e 0%, #d96d0b 100%)'}}>
+                                        <span style={{fontSize: '1.5rem'}}>☰</span>
+                                    </div>
+                                    <div className="stat-card-content">
+                                        <span className="stat-card-label">Filtrele</span>
+                                        <span className="stat-card-value" style={{fontSize: '1.2rem'}}>Seçenekler</span>
+                                        <span className="stat-card-change neutral">Tıklayın</span>
+                                    </div>
+                                </button>
+                            </div>
+                        )}
+                        
                         <div className="stat-card">
                             <div className="stat-card-icon" style={{background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)'}}>
                                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -652,7 +667,6 @@ export default function Desktop({ viewMode, onToggleFavorite, isFavorite, onView
                                 <span className="stat-card-change neutral">İstanbul</span>
                             </div>
                         </div>
-
                     </div>
 
                     <div className="cards-grid">
