@@ -387,15 +387,24 @@ export default function Desktop({ viewMode, onToggleFavorite, isFavorite, onView
         {sidebarOpen && (
         <aside className='filter-sidebar'>
 
-            <div className='filter-sidebar-header' style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+            <div className='filter-sidebar-header' style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px'}}>
                 <h3>{aiMode ? "🤖 Chatbot" : "🔍 Filtrele"}</h3>
-                <h4 style={{cursor: 'pointer'}}
-                    onClick={()=>{
-                        setAiMode(!aiMode)
-                    }}
-                >
-                    {aiMode ? "⚙️ " : "💬 "}Modu değiştir
-                </h4>
+                <div style={{display: 'flex', gap: '10px', alignItems: 'center'}}>
+                    <h4 style={{cursor: 'pointer', margin: 0}}
+                        onClick={()=>{
+                            setAiMode(!aiMode)
+                        }}
+                    >
+                        {aiMode ? "⚙️ " : "💬 "}Modu değiştir
+                    </h4>
+                    <button 
+                        className="close-sidebar-btn"
+                        onClick={() => setSidebarOpen(false)}
+                        title="Filtreleri Kapat"
+                    >
+                        ✕
+                    </button>
+                </div>
             </div>
 
             {
