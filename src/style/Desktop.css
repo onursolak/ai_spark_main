@@ -1,0 +1,289 @@
+/* --- GENEL DÜZEN (LAYOUT) --- */
+.desktop-container {
+    display: grid;
+    gap: 20px;
+    margin-top: 40px;
+    padding: 0px;
+    min-height: 100vh;
+    transition: grid-template-columns 0.5s ease-in-out;
+}
+
+.grid-small {
+    /* Sol panel 280px */
+    grid-template-columns: 280px 1fr;
+}
+
+.grid-big {
+    /* Sol panel 400px */
+    grid-template-columns: 550px 1fr;
+}
+
+/* --- SOL TARAF: SIDEBAR --- */
+.filter-sidebar {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    height: fit-content; /* İçerik kadar uza */
+    position: sticky; /* Sayfa kaydığında üstte kalsın istersen */
+    top: 20px;
+    border: 2px solid #ebe2d8;
+}
+
+.filter-sidebar-header {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #333;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 0px;
+}
+
+.filter-group {
+    margin-bottom: 15px;
+}
+
+.filter-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #555;
+}
+
+.filter-group select,
+.filter-group input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box; /* Padding taşmasını engeller */
+}
+
+.search-btn {
+    width: 100%;
+    padding: 12px;
+    background-color: #f27f0e;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    margin-top: 10px;
+    transition: background 0.3s;
+}
+
+.search-btn:hover {
+    background-color: #c1660c;
+}
+
+/* --- SAĞ TARAF: İLAN KARTLARI --- */
+.results-area {
+    /* Sağ tarafın kendi içinde düzeni */
+}
+
+.cards-grid {
+    display: grid;
+    /* Kartları responsive sığdır: En az 250px genişliğinde olsunlar */
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+/* --- KART TASARIMI --- */
+.card {
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    transition: transform 0.2s;
+    border: 2px solid #ebe2d8;
+    display: flex;
+    flex-direction: column;
+}
+
+.card:hover {
+    /*transform: translateY(-5px);*/
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.card img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+}
+
+.card-body {
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; /* Üsttekini yukarı, alttakini aşağı iter */
+    flex: 1; /* Kartın içindeki tüm boş alanı kapla */
+}
+
+.card-body h4 {
+    margin: 0 0 10px;
+    font-size: 1.1rem;
+    color: #333;
+}
+
+.price {
+    font-size: 1.2rem;
+    color: #28a745;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.features {
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 15px;
+}
+
+.detail-btn {
+    width: 100%;
+    padding: 8px;
+    background-color: #fff;
+    border: 1px solid #f27f0e;
+    color: #f27f0e;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.detail-btn:hover {
+    background-color: #f27f0e;
+    color: white;
+}
+
+/* --- AI CHAT ARAYÜZÜ --- */
+
+/* Sidebar'ın içini tam kaplaması için */
+.ai-chat-container {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 150px); /* Başlık ve boşluklar düşünülerek ayarlandı */
+    justify-content: space-between;
+}
+
+/* Mesajların listelendiği kaydırılabilir alan */
+.chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 10px;
+    /* Scrollbar'ı ince yapmak isterseniz: */
+    scrollbar-width: thin;
+    scrollbar-color: #9c7349 #f0f0f0;
+
+}
+
+/* Genel Balon Stili */
+.message-bubble {
+    max-width: 85%;
+    padding: 12px 16px;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    line-height: 1.4;
+    font-family: 'Roboto Slab', serif; /* Font tercihinize uyumlu */
+    position: relative;
+    word-wrap: break-word;
+    text-align: start;
+}
+
+/* AI Mesajı (Sol taraf) */
+.ai-msg {
+    align-self: flex-start;
+    background-color: #f3f4f6;
+    color: #333;
+    border-bottom-left-radius: 2px; /* Konuşma balonu efekti */
+}
+
+/* Kullanıcı Mesajı (Sağ taraf) */
+.user-msg {
+    align-self: flex-end;
+    background-color: #9c7349; /* Başlık renginizle uyumlu */
+    color: white;
+    border-bottom-right-radius: 2px; /* Konuşma balonu efekti */
+}
+
+/* Alt Kısım: Yazma Alanı */
+.chat-input-area {
+    display: flex;
+    gap: 10px;
+    padding: 10px 0;
+    border-top: 1px solid #eee;
+    background-color: white; /* Arka plan rengi */
+}
+
+.chat-input-area textarea {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    resize: none; /* Kullanıcı elle büyütmesin */
+    font-family: inherit;
+    outline: none;
+}
+
+.chat-input-area textarea:focus {
+    border-color: #9c7349;
+}
+
+.send-btn {
+    background-color: #9c7349;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    width: 45px;
+    cursor: pointer;
+    font-size: 1.2rem;
+    transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.send-btn:hover {
+    background-color: #7a5a38;
+}
+
+
+/* --- RESPONSIVE TASARIM (Mobil ve Tablet) --- */
+@media (max-width: 768px) {
+    .desktop-container {
+        /* Tek sütuna düşür */
+        grid-template-columns: 1fr; 
+        padding: 10px;
+    }
+
+    .filter-sidebar {
+        position: relative; /* Sticky özelliğini kapat */
+        top: 0;
+        
+        /* İçindeki elemanları yan yana diz (Flexbox) */
+        display: flex;
+        flex-wrap: wrap; 
+        gap: 10px;
+        align-items: flex-end; /* Butonu inputlarla hizala */
+        padding: 15px;
+    }
+
+    .filter-sidebar h3 {
+        width: 100%; /* Başlık tam satır kaplasın */
+        margin-bottom: 5px;
+        border: none;
+    }
+
+    .filter-group {
+        /* Mobilde inputlar yan yana sığsın diye genişlik ayarı */
+        flex: 1 1 150px; /* Esnek genişlik, en az 150px olsun */
+        margin-bottom: 0;
+    }
+
+    .search-btn {
+        flex: 1 1 100px;
+        margin-top: 0;
+        height: 42px; /* Inputlarla aynı hizaya gelmesi için */
+    }
+}
