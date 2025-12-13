@@ -71,11 +71,20 @@ function HeatmapLayer({ points }) {
                 map.removeLayer(heatLayerRef.current);
             }
 
+<<<<<<< HEAD
             // Yeni heat layer oluştur - maxZoom'u kaldırarak her zoom seviyesinde görünmesini sağla
             heatLayerRef.current = L.heatLayer(points, {
                 radius: 35,
                 blur: 45,
                 minOpacity: 0.6,
+=======
+            // Yeni heat layer oluştur
+            heatLayerRef.current = L.heatLayer(points, {
+                radius: 30,
+                blur: 40,
+                minOpacity: 0.5,
+                maxZoom: 17,
+>>>>>>> 79a703e (Add heatmap functionality using Leaflet and react-leaflet)
                 max: 1.0,
                 gradient: {
                     0.0: '#0000ff',
@@ -101,6 +110,7 @@ function HeatmapLayer({ points }) {
     return null;
 }
 
+<<<<<<< HEAD
 // İlçe etiketlerini gösteren bileşen
 function DistrictLabels({ districts }) {
     const map = useMap();
@@ -184,6 +194,11 @@ export default function HeatmapView({ data }) {
     const [districtLabels, setDistrictLabels] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [showLabels, setShowLabels] = useState(false); // Başlangıçta kapalı
+=======
+export default function HeatmapView({ data }) {
+    const [heatmapData, setHeatmapData] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+>>>>>>> 79a703e (Add heatmap functionality using Leaflet and react-leaflet)
 
     // İstanbul'un merkezi
     const istanbulCenter = [41.0082, 28.9784];
@@ -255,9 +270,12 @@ export default function HeatmapView({ data }) {
 
             console.log('Fiyat aralığı:', minPrice, '-', maxPrice);
 
+<<<<<<< HEAD
             // İlçe etiketleri için veri hazırla
             const labels = [];
 
+=======
+>>>>>>> 79a703e (Add heatmap functionality using Leaflet and react-leaflet)
             Object.keys(districtMap).forEach(district => {
                 const coords = koordinatMap[district];
                 if (coords) {
@@ -267,6 +285,7 @@ export default function HeatmapView({ data }) {
                     
                     console.log(`${district}: fiyat=${districtMap[district].avgPrice.toFixed(0)}, intensity=${intensity.toFixed(2)}, ilan=${districtMap[district].count}`);
                     
+<<<<<<< HEAD
                     // Fiyat formatını düzelt
                     const avgPriceValue = districtMap[district].avgPrice;
                     let priceText;
@@ -289,6 +308,8 @@ export default function HeatmapView({ data }) {
                         count: districtMap[district].count
                     });
                     
+=======
+>>>>>>> 79a703e (Add heatmap functionality using Leaflet and react-leaflet)
                     // İlan sayısına göre ek noktalar ekle (daha yoğun görünsün)
                     const pointCount = Math.max(Math.min(districtMap[district].count / 5, 50), 10); // En az 10, en fazla 50 nokta
                     for (let i = 0; i < pointCount; i++) {
@@ -308,7 +329,10 @@ export default function HeatmapView({ data }) {
 
             console.log('Toplam heatmap noktası:', heatPoints.length);
             setHeatmapData(heatPoints);
+<<<<<<< HEAD
             setDistrictLabels(labels);
+=======
+>>>>>>> 79a703e (Add heatmap functionality using Leaflet and react-leaflet)
             setIsLoading(false);
         };
 
@@ -338,6 +362,7 @@ export default function HeatmapView({ data }) {
             <MapContainer
                 center={istanbulCenter}
                 zoom={11}
+<<<<<<< HEAD
                 minZoom={10}
                 maxZoom={14}
                 maxBounds={[
@@ -345,6 +370,8 @@ export default function HeatmapView({ data }) {
                     [41.45, 29.70]   // Kuzeydoğu köşesi
                 ]}
                 maxBoundsViscosity={1.0}
+=======
+>>>>>>> 79a703e (Add heatmap functionality using Leaflet and react-leaflet)
                 style={{ height: '100%', width: '100%' }}
                 zoomControl={true}
             >
@@ -354,6 +381,7 @@ export default function HeatmapView({ data }) {
                 />
                 
                 <HeatmapLayer points={heatmapData} />
+<<<<<<< HEAD
                 {showLabels && <DistrictLabels districts={districtLabels} />}
             </MapContainer>
 
@@ -399,11 +427,19 @@ export default function HeatmapView({ data }) {
                 </button>
             </div>
 
+=======
+            </MapContainer>
+
+>>>>>>> 79a703e (Add heatmap functionality using Leaflet and react-leaflet)
             {/* Legend (açıklama) */}
             <div style={{
                 position: 'absolute',
                 bottom: '20px',
+<<<<<<< HEAD
                 left: '20px',
+=======
+                right: '20px',
+>>>>>>> 79a703e (Add heatmap functionality using Leaflet and react-leaflet)
                 background: 'white',
                 padding: '15px',
                 borderRadius: '8px',
