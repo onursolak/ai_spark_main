@@ -206,6 +206,7 @@ export default function HeatmapView({ data }) {
     const [districtLabels, setDistrictLabels] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [showLabels, setShowLabels] = useState(false); // Başlangıçta kapalı
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> e4c037f (Enhance HeatmapView with district labels and improve heat layer settings)
@@ -214,6 +215,8 @@ export default function HeatmapView({ data }) {
     const [districtLabels, setDistrictLabels] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
 >>>>>>> 79a703e (Add heatmap functionality using Leaflet and react-leaflet)
+=======
+>>>>>>> 014d21a (Add toggle button to show/hide district labels in HeatmapView)
 
     // İstanbul'un merkezi
     const istanbulCenter = [41.0082, 28.9784];
@@ -434,10 +437,14 @@ export default function HeatmapView({ data }) {
                 <HeatmapLayer points={heatmapData} />
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                 {showLabels && <DistrictLabels districts={districtLabels} />}
 =======
                 <DistrictLabels districts={districtLabels} />
 >>>>>>> e4c037f (Enhance HeatmapView with district labels and improve heat layer settings)
+=======
+                {showLabels && <DistrictLabels districts={districtLabels} />}
+>>>>>>> 014d21a (Add toggle button to show/hide district labels in HeatmapView)
             </MapContainer>
 
             {/* Fiyat Göster/Gizle Butonu */}
@@ -482,19 +489,26 @@ export default function HeatmapView({ data }) {
                 </button>
             </div>
 
+<<<<<<< HEAD
 =======
             </MapContainer>
 
 >>>>>>> 79a703e (Add heatmap functionality using Leaflet and react-leaflet)
+=======
+>>>>>>> 014d21a (Add toggle button to show/hide district labels in HeatmapView)
             {/* Legend (açıklama) */}
             <div style={{
                 position: 'absolute',
                 bottom: '20px',
 <<<<<<< HEAD
+<<<<<<< HEAD
                 left: '20px',
 =======
                 right: '20px',
 >>>>>>> 79a703e (Add heatmap functionality using Leaflet and react-leaflet)
+=======
+                left: '20px',
+>>>>>>> 014d21a (Add toggle button to show/hide district labels in HeatmapView)
                 background: 'white',
                 padding: '15px',
                 borderRadius: '8px',
