@@ -5,13 +5,12 @@ import jsonDatas from '../data/data.json';
 import { Client } from "@gradio/client";
 
 export default function Desktop() {
-    const odaSecenekleri = ["1", "2", "3", "4", "5", "6+"];
-    const katSecenekleri = ["Zemin", "1", "2", "3", "4", "5", "6-10", "11+"];
-    const m2Secenekleri = ["0-75 m²", "76-100 m²", "101-125 m²", "126-150 m²", "151+ m²"];
-
-    const [secilenOdalar, setSecilenOdalar] = useState([]);
-    const [secilenKatlar, setSecilenKatlar] = useState([]);
-    const [secilenM2, setSecilenM2] = useState([]);
+    // --- STATE TANIMLARI ---
+    // İlçe zaten vardı, diğerlerini ekliyoruz:
+    const [secilenMahalle, setSecilenMahalle] = useState(""); // Seçilen mahalle ismi
+    const [secilenOda, setSecilenOda] = useState("");         // Örn: "2+1"
+    const [minMetrekare, setMinMetrekare] = useState("");     // Örn: 100
+    const [secilenKat, setSecilenKat] = useState("");         // Örn: 3
 
 
     const [data, setDatas] = useState(jsonDatas);
@@ -188,6 +187,7 @@ export default function Desktop() {
                 (
                     <>
             
+                        {/* --- İLÇE (Zaten Vardı) --- */}
                         <div className="filter-group">
                             <label>İlçe</label>
                             <select onChange={handleIlceChange} value={secilenIlceId}>
@@ -200,9 +200,13 @@ export default function Desktop() {
                             </select>
                         </div>
 
+                        {/* --- MAHALLE --- */}
                         <div className="filter-group">
                             <label>Mahalle</label>
-                            <select>
+                            <select 
+                                value={secilenMahalle} 
+                                onChange={(e) => setSecilenMahalle(e.target.value)}
+                            >
                                 <option value="">
                                     {!secilenIlceId ? "Önce İlçe Seçin" : (yukleniyor ? "Yükleniyor..." : "Tümü")}
                                 </option>
@@ -215,25 +219,61 @@ export default function Desktop() {
                             </select>
                         </div>
 
+                        {/* --- ODA SAYISI --- */}
                         <div className="filter-group">
                             <label>Oda Sayısı</label>
-                            <select><option>1+1</option><option>2+1</option><option>3+1</option></select>
+                            <select 
+                                value={secilenOda} 
+                                onChange={(e) => setSecilenOda(e.target.value)}
+                            >
+                                <option value="">Seçiniz</option> {/* Boş seçenek eklemek iyidir */}
+                                <option value="1+1">1+1</option>
+                                <option value="2+1">2+1</option>
+                                <option value="3+1">3+1</option>
+                            </select>
                         </div>
 
+                        {/* --- METREKARE --- */}
                         <div className="filter-group">
                             <label>Metrekare (Min)</label>
-                            <input type="number" placeholder="Örn: 100" />
+                            <input 
+                                type="number" 
+                                placeholder="Örn: 100" 
+                                value={minMetrekare}
+                                onChange={(e) => setMinMetrekare(e.target.value)}
+                            />
                         </div>
 
+                        {/* --- BULUNDUĞU KAT --- */}
                         <div className="filter-group">
                             <label>Bulunduğu Kat</label>
-                            <input type="number" placeholder="Örn: 3" />
+                            <input 
+                                type="number" 
+                                placeholder="Örn: 3" 
+                                value={secilenKat}
+                                onChange={(e) => setSecilenKat(e.target.value)}
+                            />
                         </div>
 
                         <button className='search-btn'
                             onClick={()=> {
-                                const selectedIlce = ilceler.find(i=> i.id == secilenIlceId).name;
-                                setDatas(jsonDatas);
+
+                                console.log(ilceler?.find(i=> i.id == secilenIlceId)?.name)
+                                console.log(secilenMahalle)
+                                console.log(secilenOda)
+                                console.log(minMetrekare)
+                                console.log(secilenKat)
+
+
+                                //const selectedIlce = ilceler.find(i=> i.id == secilenIlceId).name;
+                                setDatas(
+                                    jsonDatas
+                                        .filter(i=> i["District"] == ilceler?.find(i=> i.id == secilenIlceId)?.name)
+                                        .filter(i=> i["Neighborhood"] == secilenMahalle)
+                                        .filter(i=> i["Number of rooms"] == secilenOda)
+                                        .filter(i=> i["m² (Gross)"] == minMetrekare)
+                                        .filter(i=> i["Floor location"] == secilenKat)
+                                );
                             }}
                         >Ara</button>
                     </>
