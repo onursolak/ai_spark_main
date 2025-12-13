@@ -345,3 +345,15 @@
 .leaflet-popup-content {
     font-size: 0.9rem;
 }
+
+/* İlçe etiketleri için stil */
+.district-label {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+/* Harita zoom'da etiketlerin görünürlüğü */
+.leaflet-zoom-animated .district-label {
+    transition: opacity 0.3s ease;
+}
