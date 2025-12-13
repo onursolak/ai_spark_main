@@ -3,6 +3,7 @@ import '../style/Desktop.css';
 import HouseImg from '../style/imgs/house.jpeg';
 import jsonDatas from '../data/data.json';
 import { Client } from "@gradio/client";
+import HeatmapView from '../components/HeatmapView';
 
 export default function Desktop() {
     const odaSecenekleri = ["1", "2", "3", "4", "5", "6+"];
@@ -36,6 +37,8 @@ export default function Desktop() {
             text: 'Merhaba! Size nasıl bir ev bakıyoruz?' 
         },
     ]);
+
+    const [viewMode, setViewMode] = useState('list'); // 'list' veya 'map'
 
     useEffect(() => {
         const connectToGradio = async () => {
@@ -244,57 +247,79 @@ export default function Desktop() {
 
 
 
-        {/* SAĞ TARAF: İLAN LİSTESİ */}
+        {/* SAĞ TARAF: İLAN LİSTESİ veya HARİTA */}
         <main className='results-area'>
-            <div className="cards-grid">
-                {data.map((ilan, index) => (
-                    /* JSON'da unique bir ID olmadığı için key olarak index kullandık */
-                    <div className="card" key={index}>
-                        
-                        {/* Resim şimdilik sabit, verinde resim URL'i yok */}
-                        <img src={HouseImg} alt={`${ilan.District} Satılık Daire`} />
-                        
-                        <div className="card-body">
-                            <div>
-                                <h4>{ilan.District}, {ilan.Neighborhood}</h4>
-                            </div>
-                            
-                            <div>
-                                <p className="price">
-                                    {ilan.Price.toLocaleString('tr-TR')} TL
-                                </p>
-                                
-                                <div className="features">
-                                    {/* Oda Sayısı */}
-                                    <span>{ilan["Number of rooms"]} Oda </span> 
-                                    • 
-                                    {/* Metrekare (Köşeli parantez zorunlu çünkü key içinde boşluk var) */}
-                                    <span> {ilan["m² (Gross)"]} m² </span>
-                                    •
-                                    {/* Bulunduğu Kat */}
-                                    <span> {ilan["Floor location"]}. Kat</span>
-                                </div>
-                                
-                                <div style={{display: "flex", gap: "5px"}}>
-                                    <button className="detail-btn" style={{flex: 2}}>Detay Gör</button>
-                                    <button className="detail-btn" style={{flex: 1}}>
-                                        <a 
-                                            target='_blank' 
-                                            rel="noopener noreferrer"
-                                            /* Hem District hem Neighborhood bilgisini araya boşluk koyarak ekledik */
-                                            href={`https://www.google.com/maps/search/${ilan["District"]} ${ilan["Neighborhood"]}`}
-                                            style={{textDecoration: 'none', color: 'inherit'}}
-                                        >
-                                            Konum
-                                        </a>
-                                    </button>
-                                </div>
-                            </div>
-                            
-                        </div>
-                    </div>
-                ))}
+            {/* Görünüm Değiştirme Butonları */}
+            <div className="view-toggle">
+                <button 
+                    className={`toggle-btn ${viewMode === 'list' ? 'active' : ''}`}
+                    onClick={() => setViewMode('list')}
+                >
+                    📋 Liste
+                </button>
+                <button 
+                    className={`toggle-btn ${viewMode === 'map' ? 'active' : ''}`}
+                    onClick={() => setViewMode('map')}
+                >
+                    🗺️ Harita
+                </button>
             </div>
+
+            {viewMode === 'list' ? (
+                <div className="cards-grid">
+                    {data.map((ilan, index) => (
+                        /* JSON'da unique bir ID olmadığı için key olarak index kullandık */
+                        <div className="card" key={index}>
+                            
+                            {/* Resim şimdilik sabit, verinde resim URL'i yok */}
+                            <img src={HouseImg} alt={`${ilan.District} Satılık Daire`} />
+                            
+                            <div className="card-body">
+                                <div>
+                                    <h4>{ilan.District}, {ilan.Neighborhood}</h4>
+                                </div>
+                                
+                                <div>
+                                    <p className="price">
+                                        {ilan.Price.toLocaleString('tr-TR')} TL
+                                    </p>
+                                    
+                                    <div className="features">
+                                        {/* Oda Sayısı */}
+                                        <span>{ilan["Number of rooms"]} Oda </span> 
+                                        • 
+                                        {/* Metrekare (Köşeli parantez zorunlu çünkü key içinde boşluk var) */}
+                                        <span> {ilan["m² (Gross)"]} m² </span>
+                                        •
+                                        {/* Bulunduğu Kat */}
+                                        <span> {ilan["Floor location"]}. Kat</span>
+                                    </div>
+                                    
+                                    <div style={{display: "flex", gap: "5px"}}>
+                                        <button className="detail-btn" style={{flex: 2}}>Detay Gör</button>
+                                        <button className="detail-btn" style={{flex: 1}}>
+                                            <a 
+                                                target='_blank' 
+                                                rel="noopener noreferrer"
+                                                /* Hem District hem Neighborhood bilgisini araya boşluk koyarak ekledik */
+                                                href={`https://www.google.com/maps/search/${ilan["District"]} ${ilan["Neighborhood"]}`}
+                                                style={{textDecoration: 'none', color: 'inherit'}}
+                                            >
+                                                Konum
+                                            </a>
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            ) : (
+                <div className="map-container">
+                    <HeatmapView data={data} />
+                </div>
+            )}
         </main>
 
     </div>
