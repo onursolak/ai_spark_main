@@ -266,12 +266,25 @@ export default function HeatmapView({ data }) {
                     
                     console.log(`${district}: fiyat=${districtMap[district].avgPrice.toFixed(0)}, intensity=${intensity.toFixed(2)}, ilan=${districtMap[district].count}`);
                     
+                    // Fiyat formatını düzelt
+                    const avgPriceValue = districtMap[district].avgPrice;
+                    let priceText;
+                    if (avgPriceValue >= 1000000) {
+                        // 1 milyon ve üzeri için
+                        priceText = (avgPriceValue / 1000000).toFixed(1) + 'M TL';
+                    } else if (avgPriceValue >= 1000) {
+                        // 1000 TL ve üzeri için
+                        priceText = (avgPriceValue / 1000).toFixed(0) + 'K TL';
+                    } else {
+                        priceText = avgPriceValue.toFixed(0) + ' TL';
+                    }
+                    
                     // Etiket bilgisi ekle
                     labels.push({
                         name: district,
                         lat: coords.lat,
                         lng: coords.lng,
-                        avgPrice: (districtMap[district].avgPrice / 1000).toFixed(0) + 'K TL',
+                        avgPrice: priceText,
                         count: districtMap[district].count
                     });
                     
@@ -324,6 +337,13 @@ export default function HeatmapView({ data }) {
             <MapContainer
                 center={istanbulCenter}
                 zoom={11}
+                minZoom={10}
+                maxZoom={14}
+                maxBounds={[
+                    [40.80, 28.00],  // Güneybatı köşesi
+                    [41.45, 29.70]   // Kuzeydoğu köşesi
+                ]}
+                maxBoundsViscosity={1.0}
                 style={{ height: '100%', width: '100%' }}
                 zoomControl={true}
             >
