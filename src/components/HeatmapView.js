@@ -71,28 +71,11 @@ function HeatmapLayer({ points }) {
                 map.removeLayer(heatLayerRef.current);
             }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
             // Yeni heat layer oluştur - maxZoom'u kaldırarak her zoom seviyesinde görünmesini sağla
             heatLayerRef.current = L.heatLayer(points, {
                 radius: 35,
                 blur: 45,
                 minOpacity: 0.6,
-=======
-            // Yeni heat layer oluştur
-            heatLayerRef.current = L.heatLayer(points, {
-                radius: 30,
-                blur: 40,
-                minOpacity: 0.5,
-                maxZoom: 17,
->>>>>>> 79a703e (Add heatmap functionality using Leaflet and react-leaflet)
-=======
-            // Yeni heat layer oluştur - maxZoom'u kaldırarak her zoom seviyesinde görünmesini sağla
-            heatLayerRef.current = L.heatLayer(points, {
-                radius: 35,
-                blur: 45,
-                minOpacity: 0.6,
->>>>>>> e4c037f (Enhance HeatmapView with district labels and improve heat layer settings)
                 max: 1.0,
                 gradient: {
                     0.0: '#0000ff',
@@ -118,10 +101,6 @@ function HeatmapLayer({ points }) {
     return null;
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> e4c037f (Enhance HeatmapView with district labels and improve heat layer settings)
 // İlçe etiketlerini gösteren bileşen
 function DistrictLabels({ districts }) {
     const map = useMap();
@@ -200,23 +179,11 @@ function DistrictLabels({ districts }) {
     return null;
 }
 
-<<<<<<< HEAD
 export default function HeatmapView({ data }) {
     const [heatmapData, setHeatmapData] = useState([]);
     const [districtLabels, setDistrictLabels] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [showLabels, setShowLabels] = useState(false); // Başlangıçta kapalı
-<<<<<<< HEAD
-=======
-=======
->>>>>>> e4c037f (Enhance HeatmapView with district labels and improve heat layer settings)
-export default function HeatmapView({ data }) {
-    const [heatmapData, setHeatmapData] = useState([]);
-    const [districtLabels, setDistrictLabels] = useState([]);
-    const [isLoading, setIsLoading] = useState(true);
->>>>>>> 79a703e (Add heatmap functionality using Leaflet and react-leaflet)
-=======
->>>>>>> 014d21a (Add toggle button to show/hide district labels in HeatmapView)
 
     // İstanbul'un merkezi
     const istanbulCenter = [41.0082, 28.9784];
@@ -288,18 +255,9 @@ export default function HeatmapView({ data }) {
 
             console.log('Fiyat aralığı:', minPrice, '-', maxPrice);
 
-<<<<<<< HEAD
-<<<<<<< HEAD
             // İlçe etiketleri için veri hazırla
             const labels = [];
 
-=======
->>>>>>> 79a703e (Add heatmap functionality using Leaflet and react-leaflet)
-=======
-            // İlçe etiketleri için veri hazırla
-            const labels = [];
-
->>>>>>> e4c037f (Enhance HeatmapView with district labels and improve heat layer settings)
             Object.keys(districtMap).forEach(district => {
                 const coords = koordinatMap[district];
                 if (coords) {
@@ -309,11 +267,6 @@ export default function HeatmapView({ data }) {
                     
                     console.log(`${district}: fiyat=${districtMap[district].avgPrice.toFixed(0)}, intensity=${intensity.toFixed(2)}, ilan=${districtMap[district].count}`);
                     
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> b29b39f (Refactor HeatmapView to improve average price formatting and enhance map bounds)
                     // Fiyat formatını düzelt
                     const avgPriceValue = districtMap[district].avgPrice;
                     let priceText;
@@ -327,33 +280,15 @@ export default function HeatmapView({ data }) {
                         priceText = avgPriceValue.toFixed(0) + ' TL';
                     }
                     
-<<<<<<< HEAD
-=======
->>>>>>> e4c037f (Enhance HeatmapView with district labels and improve heat layer settings)
-=======
->>>>>>> b29b39f (Refactor HeatmapView to improve average price formatting and enhance map bounds)
                     // Etiket bilgisi ekle
                     labels.push({
                         name: district,
                         lat: coords.lat,
                         lng: coords.lng,
-<<<<<<< HEAD
-<<<<<<< HEAD
                         avgPrice: priceText,
                         count: districtMap[district].count
                     });
                     
-=======
->>>>>>> 79a703e (Add heatmap functionality using Leaflet and react-leaflet)
-=======
-                        avgPrice: (districtMap[district].avgPrice / 1000).toFixed(0) + 'K TL',
-=======
-                        avgPrice: priceText,
->>>>>>> b29b39f (Refactor HeatmapView to improve average price formatting and enhance map bounds)
-                        count: districtMap[district].count
-                    });
-                    
->>>>>>> e4c037f (Enhance HeatmapView with district labels and improve heat layer settings)
                     // İlan sayısına göre ek noktalar ekle (daha yoğun görünsün)
                     const pointCount = Math.max(Math.min(districtMap[district].count / 5, 50), 10); // En az 10, en fazla 50 nokta
                     for (let i = 0; i < pointCount; i++) {
@@ -373,14 +308,7 @@ export default function HeatmapView({ data }) {
 
             console.log('Toplam heatmap noktası:', heatPoints.length);
             setHeatmapData(heatPoints);
-<<<<<<< HEAD
-<<<<<<< HEAD
             setDistrictLabels(labels);
-=======
->>>>>>> 79a703e (Add heatmap functionality using Leaflet and react-leaflet)
-=======
-            setDistrictLabels(labels);
->>>>>>> e4c037f (Enhance HeatmapView with district labels and improve heat layer settings)
             setIsLoading(false);
         };
 
@@ -410,10 +338,6 @@ export default function HeatmapView({ data }) {
             <MapContainer
                 center={istanbulCenter}
                 zoom={11}
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> b29b39f (Refactor HeatmapView to improve average price formatting and enhance map bounds)
                 minZoom={10}
                 maxZoom={14}
                 maxBounds={[
@@ -421,11 +345,6 @@ export default function HeatmapView({ data }) {
                     [41.45, 29.70]   // Kuzeydoğu köşesi
                 ]}
                 maxBoundsViscosity={1.0}
-<<<<<<< HEAD
-=======
->>>>>>> 79a703e (Add heatmap functionality using Leaflet and react-leaflet)
-=======
->>>>>>> b29b39f (Refactor HeatmapView to improve average price formatting and enhance map bounds)
                 style={{ height: '100%', width: '100%' }}
                 zoomControl={true}
             >
@@ -435,16 +354,7 @@ export default function HeatmapView({ data }) {
                 />
                 
                 <HeatmapLayer points={heatmapData} />
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
                 {showLabels && <DistrictLabels districts={districtLabels} />}
-=======
-                <DistrictLabels districts={districtLabels} />
->>>>>>> e4c037f (Enhance HeatmapView with district labels and improve heat layer settings)
-=======
-                {showLabels && <DistrictLabels districts={districtLabels} />}
->>>>>>> 014d21a (Add toggle button to show/hide district labels in HeatmapView)
             </MapContainer>
 
             {/* Fiyat Göster/Gizle Butonu */}
@@ -489,26 +399,11 @@ export default function HeatmapView({ data }) {
                 </button>
             </div>
 
-<<<<<<< HEAD
-=======
-            </MapContainer>
-
->>>>>>> 79a703e (Add heatmap functionality using Leaflet and react-leaflet)
-=======
->>>>>>> 014d21a (Add toggle button to show/hide district labels in HeatmapView)
             {/* Legend (açıklama) */}
             <div style={{
                 position: 'absolute',
                 bottom: '20px',
-<<<<<<< HEAD
-<<<<<<< HEAD
                 left: '20px',
-=======
-                right: '20px',
->>>>>>> 79a703e (Add heatmap functionality using Leaflet and react-leaflet)
-=======
-                left: '20px',
->>>>>>> 014d21a (Add toggle button to show/hide district labels in HeatmapView)
                 background: 'white',
                 padding: '15px',
                 borderRadius: '8px',
