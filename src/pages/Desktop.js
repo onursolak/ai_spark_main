@@ -41,7 +41,7 @@ export default function Desktop({ viewMode, onToggleFavorite, isFavorite, onView
         const connectToGradio = async () => {
             try {
                 console.log("🔌 Gradio sunucusuna bağlanılıyor...");
-                const client = await Client.connect("https://7cb1286ae8eaff6da7.gradio.live/");
+                const client = await Client.connect("https://887d2b115212a7e122.gradio.live/");
                 setGradioClient(client);
                 setIsConnecting(true);
                 console.log("✅ Bağlantı başarılı!");
@@ -277,15 +277,30 @@ export default function Desktop({ viewMode, onToggleFavorite, isFavorite, onView
                                 console.log(secilenKat)
 
 
-                                //const selectedIlce = ilceler.find(i=> i.id == secilenIlceId).name;
-                                setDatas(
-                                    jsonDatas
-                                        .filter(i=> i["District"] == ilceler?.find(i=> i.id == secilenIlceId)?.name)
-                                        .filter(i=> i["Neighborhood"] == secilenMahalle)
-                                        .filter(i=> i["Number of rooms"] == secilenOda)
-                                        .filter(i=> i["m² (Gross)"] == minMetrekare)
-                                        .filter(i=> i["Floor location"] == secilenKat)
-                                );
+                                const secilenIlceIsmi = ilceler?.find(i => i.id == secilenIlceId)?.name;
+
+                                const sonuc = jsonDatas.filter(i => {
+                                    // 1. İlçe Kontrolü (Seçilmediyse VEYA Eşleşiyorsa)
+                                    const ilceUyuyor = !secilenIlceId || i["District"] == secilenIlceIsmi;
+
+                                    // 2. Mahalle Kontrolü
+                                    const mahalleUyuyor = !secilenMahalle || i["Neighborhood"] == secilenMahalle;
+
+                                    // 3. Oda Kontrolü
+                                    const odaUyuyor = !secilenOda || i["Number of rooms"] == secilenOda;
+
+                                    // 4. Metrekare Kontrolü 
+                                    // (Min dediğin için "==" yerine ">=" (büyük eşit) kullanmak daha doğrudur)
+                                    const m2Uyuyor = !minMetrekare || i["m² (Gross)"] >= parseInt(minMetrekare);
+
+                                    // 5. Kat Kontrolü
+                                    const katUyuyor = !secilenKat || i["Floor location"] == secilenKat;
+
+                                    // HEPSİ True ise o ilanı göster
+                                    return ilceUyuyor && mahalleUyuyor && odaUyuyor && m2Uyuyor && katUyuyor;
+                                });
+
+                                setDatas(sonuc);
                             }}
                         >Ara</button>
                     </>
