@@ -373,9 +373,10 @@ export default function Desktop({ viewMode, onToggleFavorite, isFavorite, onView
         <button 
             className="sidebar-toggle-btn"
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            title={sidebarOpen ? "Kenar çubuğunu gizle" : "Kenar çubuğunu göster"}
+            title={sidebarOpen ? "Filtreleri Gizle" : "Filtreleri Göster"}
         >
-            {sidebarOpen ? '◀' : '▶'}
+            <span className="toggle-icon">{sidebarOpen ? '✕' : '☰'}</span>
+            <span className="toggle-text">{sidebarOpen ? 'Gizle' : 'Filtreler'}</span>
         </button>
 
         <div className={`desktop-container ${aiMode ? 'grid-big' : 'grid-small'} ${!sidebarOpen ? 'sidebar-closed' : ''}`}>
@@ -650,18 +651,6 @@ export default function Desktop({ viewMode, onToggleFavorite, isFavorite, onView
                             </div>
                         </div>
 
-                        <div className="stat-card">
-                            <div className="stat-card-icon" style={{background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)'}}>
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
-                                </svg>
-                            </div>
-                            <div className="stat-card-content">
-                                <span className="stat-card-label">Aktif Görüntüleme</span>
-                                <span className="stat-card-value">2.4K</span>
-                                <span className="stat-card-change positive">+18% bu hafta</span>
-                            </div>
-                        </div>
                     </div>
 
                     <div className="cards-grid">

@@ -1250,25 +1250,50 @@
     position: fixed;
     left: 20px;
     top: 90px;
-    z-index: 2000;
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #f27f0e 0%, #d96d0b 100%);
-    color: white;
-    border: none;
+    z-index: 999;
+    padding: 12px 20px;
+    min-width: 120px;
+    height: auto;
+    border-radius: 16px;
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 255, 255, 0.95) 100%);
+    backdrop-filter: blur(20px);
+    color: #f27f0e;
+    border: 2px solid rgba(242, 127, 14, 0.3);
     cursor: pointer;
-    box-shadow: 0 4px 15px rgba(242, 127, 14, 0.4);
-    transition: all 0.3s ease;
-    font-size: 1.2rem;
+    box-shadow: 0 4px 20px rgba(242, 127, 14, 0.2);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
     align-items: center;
     justify-content: center;
+    gap: 8px;
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+.sidebar-toggle-btn .toggle-icon {
+    font-size: 1.3rem;
+    transition: transform 0.3s ease;
+}
+
+.sidebar-toggle-btn .toggle-text {
+    font-weight: 700;
+    letter-spacing: 0.3px;
 }
 
 .sidebar-toggle-btn:hover {
-    transform: scale(1.1);
-    box-shadow: 0 6px 20px rgba(242, 127, 14, 0.6);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 25px rgba(242, 127, 14, 0.3);
+    background: linear-gradient(135deg, #f27f0e 0%, #d96d0b 100%);
+    color: white;
+    border-color: transparent;
+}
+
+.sidebar-toggle-btn:hover .toggle-icon {
+    transform: rotate(90deg);
+}
+
+.sidebar-toggle-btn:active {
+    transform: translateY(0);
 }
 
 .desktop-container.sidebar-closed {
