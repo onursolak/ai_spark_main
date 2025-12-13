@@ -71,12 +71,11 @@ function HeatmapLayer({ points }) {
                 map.removeLayer(heatLayerRef.current);
             }
 
-            // Yeni heat layer oluştur
+            // Yeni heat layer oluştur - maxZoom'u kaldırarak her zoom seviyesinde görünmesini sağla
             heatLayerRef.current = L.heatLayer(points, {
-                radius: 30,
-                blur: 40,
-                minOpacity: 0.5,
-                maxZoom: 17,
+                radius: 35,
+                blur: 45,
+                minOpacity: 0.6,
                 max: 1.0,
                 gradient: {
                     0.0: '#0000ff',
@@ -102,8 +101,87 @@ function HeatmapLayer({ points }) {
     return null;
 }
 
+// İlçe etiketlerini gösteren bileşen
+function DistrictLabels({ districts }) {
+    const map = useMap();
+    const markersRef = useRef([]);
+    const [currentZoom, setCurrentZoom] = useState(11);
+
+    useEffect(() => {
+        const handleZoom = () => {
+            setCurrentZoom(map.getZoom());
+        };
+
+        map.on('zoomend', handleZoom);
+        return () => {
+            map.off('zoomend', handleZoom);
+        };
+    }, [map]);
+
+    useEffect(() => {
+        // Eski markerları temizle
+        markersRef.current.forEach(marker => map.removeLayer(marker));
+        markersRef.current = [];
+
+        // Zoom seviyesi çok yüksekse (çok yakınsa) etiketleri gösterme
+        if (currentZoom > 13 || currentZoom < 10) {
+            return;
+        }
+
+        if (districts && districts.length > 0) {
+            // Zoom seviyesine göre boyut ayarla
+            const scale = currentZoom / 11; // 11 varsayılan zoom
+            const fontSize = Math.max(11, 13 * scale);
+            const priceSize = Math.max(12, 14 * scale);
+
+            districts.forEach(district => {
+                // Özel bir DivIcon oluştur
+                const icon = L.divIcon({
+                    className: 'district-label',
+                    html: `
+                        <div style="
+                            background: rgba(255, 255, 255, 0.95);
+                            padding: ${6 * scale}px ${10 * scale}px;
+                            border-radius: 6px;
+                            font-weight: bold;
+                            font-size: ${fontSize}px;
+                            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+                            border: 2px solid #f27f0e;
+                            white-space: nowrap;
+                            text-align: center;
+                            color: #333;
+                        ">
+                            <div style="font-size: ${fontSize - 2}px; color: #666; margin-bottom: 2px;">${district.name}</div>
+                            <div style="color: #f27f0e; font-size: ${priceSize}px;">${district.avgPrice}</div>
+                            <div style="font-size: ${fontSize - 4}px; color: #999;">${district.count} ilan</div>
+                        </div>
+                    `,
+                    iconSize: [120 * scale, 60 * scale],
+                    iconAnchor: [60 * scale, 30 * scale]
+                });
+
+                const marker = L.marker([district.lat, district.lng], { 
+                    icon: icon,
+                    // Etiketlerin tıklanabilir olmamasını sağla
+                    interactive: false
+                }).addTo(map);
+
+                markersRef.current.push(marker);
+            });
+        }
+
+        return () => {
+            markersRef.current.forEach(marker => map.removeLayer(marker));
+            markersRef.current = [];
+        };
+    }, [districts, map, currentZoom]);
+
+    return null;
+}
+
 export default function HeatmapView({ data }) {
     const [heatmapData, setHeatmapData] = useState([]);
+    const [districtLabels, setDistrictLabels] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
 
     // İstanbul'un merkezi
@@ -176,6 +254,9 @@ export default function HeatmapView({ data }) {
 
             console.log('Fiyat aralığı:', minPrice, '-', maxPrice);
 
+            // İlçe etiketleri için veri hazırla
+            const labels = [];
+
             Object.keys(districtMap).forEach(district => {
                 const coords = koordinatMap[district];
                 if (coords) {
@@ -184,6 +265,15 @@ export default function HeatmapView({ data }) {
                     const intensity = normalizedPrice * 0.9 + 0.3; // 0.3 - 1.2 arası (daha belirgin)
                     
                     console.log(`${district}: fiyat=${districtMap[district].avgPrice.toFixed(0)}, intensity=${intensity.toFixed(2)}, ilan=${districtMap[district].count}`);
+                    
+                    // Etiket bilgisi ekle
+                    labels.push({
+                        name: district,
+                        lat: coords.lat,
+                        lng: coords.lng,
+                        avgPrice: (districtMap[district].avgPrice / 1000).toFixed(0) + 'K TL',
+                        count: districtMap[district].count
+                    });
                     
                     // İlan sayısına göre ek noktalar ekle (daha yoğun görünsün)
                     const pointCount = Math.max(Math.min(districtMap[district].count / 5, 50), 10); // En az 10, en fazla 50 nokta
@@ -204,6 +294,7 @@ export default function HeatmapView({ data }) {
 
             console.log('Toplam heatmap noktası:', heatPoints.length);
             setHeatmapData(heatPoints);
+            setDistrictLabels(labels);
             setIsLoading(false);
         };
 
@@ -242,6 +333,7 @@ export default function HeatmapView({ data }) {
                 />
                 
                 <HeatmapLayer points={heatmapData} />
+                <DistrictLabels districts={districtLabels} />
             </MapContainer>
 
             {/* Legend (açıklama) */}
