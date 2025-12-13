@@ -134,17 +134,29 @@
 
 .action-btn {
     position: relative;
-    width: 42px;
-    height: 42px;
     display: flex;
     align-items: center;
     justify-content: center;
+    gap: 8px;
+    padding: 10px 16px;
     border: none;
     background: rgba(248, 250, 252, 0.8);
     border-radius: 12px;
     cursor: pointer;
     color: #64748b;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.action-text {
+    display: none;
+}
+
+@media (min-width: 768px) {
+    .action-text {
+        display: inline;
+    }
 }
 
 .action-btn:hover {

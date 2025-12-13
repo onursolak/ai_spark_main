@@ -4,12 +4,30 @@ import './App.css';
 import Desktop from "./pages/Desktop";
 import Favorites from "./pages/Favorites";
 import PropertyDetail from "./pages/PropertyDetail";
+import PricePredictor from "./components/PricePredictor";
+import { API_ENDPOINTS, apiCall } from './config/api';
 
 function App() {
   const [currentPage, setCurrentPage] = useState('home');
   const [currentView, setCurrentView] = useState('list');
   const [favorites, setFavorites] = useState([]);
   const [selectedProperty, setSelectedProperty] = useState(null);
+  const [metadata, setMetadata] = useState(null);
+
+  // Backend'den metadata'yı yükle
+  useEffect(() => {
+    const fetchMetadata = async () => {
+      try {
+        const data = await apiCall(API_ENDPOINTS.META);
+        console.log('Metadata yüklendi:', data);
+        setMetadata(data);
+      } catch (error) {
+        console.error('Metadata yüklenemedi:', error);
+      }
+    };
+    
+    fetchMetadata();
+  }, []);
 
   // LocalStorage'dan favorileri yükle
   useEffect(() => {
@@ -77,14 +95,19 @@ function App() {
           onToggleFavorite={toggleFavorite}
           isFavorite={isFavorite}
           onViewDetail={viewDetail}
+          metadata={metadata}
         />
-      ) : (
+      ) : currentPage === 'favorites' ? (
         <Favorites 
           favorites={favorites}
           onToggleFavorite={toggleFavorite}
           onViewDetail={viewDetail}
         />
-      )}
+      ) : currentPage === 'predict' ? (
+        <div style={{ padding: '40px 20px', maxWidth: '1200px', margin: '0 auto' }}>
+          <PricePredictor metadata={metadata} />
+        </div>
+      ) : null}
 
       {selectedProperty && (
         <PropertyDetail 

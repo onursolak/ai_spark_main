@@ -381,4 +381,189 @@
     .detail-actions {
         flex-direction: column;
     }
+
+    .detail-prediction-result-body {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+/* --- AI FİYAT TAHMİNİ STİLLERİ --- */
+
+.detail-prediction-section {
+    margin-bottom: 32px;
+}
+
+.detail-predict-btn {
+    width: 100%;
+    padding: 18px 28px;
+    background: linear-gradient(135deg, #f27f0e 0%, #d96d0b 100%);
+    color: white;
+    border: none;
+    border-radius: 16px;
+    font-size: 1.05rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    box-shadow: 0 4px 15px rgba(242, 127, 14, 0.3);
+}
+
+.detail-predict-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(242, 127, 14, 0.4);
+}
+
+.detail-predict-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.detail-prediction-result {
+    margin-top: 20px;
+    padding: 24px;
+    border-radius: 16px;
+    border: 2px solid;
+    animation: slideInDown 0.4s ease;
+}
+
+@keyframes slideInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.detail-prediction-result.expensive {
+    background: linear-gradient(145deg, rgba(239, 68, 68, 0.08) 0%, rgba(220, 38, 38, 0.05) 100%);
+    border-color: rgba(239, 68, 68, 0.3);
+}
+
+.detail-prediction-result.cheap {
+    background: linear-gradient(145deg, rgba(16, 185, 129, 0.08) 0%, rgba(5, 150, 105, 0.05) 100%);
+    border-color: rgba(16, 185, 129, 0.3);
+}
+
+.detail-prediction-result.normal {
+    background: linear-gradient(145deg, rgba(59, 130, 246, 0.08) 0%, rgba(37, 99, 235, 0.05) 100%);
+    border-color: rgba(59, 130, 246, 0.3);
+}
+
+.prediction-result-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.result-icon {
+    font-size: 2rem;
+}
+
+.result-title {
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: #1e293b;
+}
+
+.prediction-result-body {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.prediction-stat {
+    background: white;
+    padding: 16px;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.prediction-stat .stat-label {
+    font-size: 0.85rem;
+    color: #64748b;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.prediction-stat .stat-value {
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: #1e293b;
+}
+
+.prediction-stat .stat-value.expensive {
+    color: #dc2626;
+}
+
+.prediction-stat .stat-value.cheap {
+    color: #059669;
+}
+
+.prediction-stat .stat-value.normal {
+    color: #2563eb;
+}
+
+.prediction-note {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: #475569;
+    margin: 0;
+    padding: 14px 18px;
+    background: rgba(255, 255, 255, 0.6);
+    border-radius: 10px;
+    border-left: 4px solid;
+}
+
+.detail-prediction-result.expensive .prediction-note {
+    border-left-color: #dc2626;
+}
+
+.detail-prediction-result.cheap .prediction-note {
+    border-left-color: #059669;
+}
+
+.detail-prediction-result.normal .prediction-note {
+    border-left-color: #2563eb;
+}
+
+.detail-prediction-error {
+    margin-top: 20px;
+    padding: 16px 20px;
+    background: linear-gradient(145deg, rgba(156, 163, 175, 0.08) 0%, rgba(107, 114, 128, 0.05) 100%);
+    border: 2px solid rgba(156, 163, 175, 0.3);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #64748b;
+    font-weight: 600;
+}
+
+.spinner-small {
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-top: 3px solid white;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }

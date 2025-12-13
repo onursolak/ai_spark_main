@@ -1,9 +1,138 @@
-import React from 'react';
+import React, { useState } from 'react';
 import '../style/PropertyDetail.css';
 import HouseImg from '../style/imgs/house.jpeg';
+import { API_ENDPOINTS, apiCall } from '../config/api';
 
 export default function PropertyDetail({ property, onClose, onToggleFavorite, isFavorite }) {
+    const [predicting, setPredicting] = useState(false);
+    const [prediction, setPrediction] = useState(null);
+    
     if (!property) return null;
+
+    // Fiyat tahmini fonksiyonu
+    const handlePredictPrice = async () => {
+        setPredicting(true);
+        
+        try {
+            // Veriyi API formatına dönüştür
+            const convertToAPIFormat = (data) => {
+                let rooms = data["Number of rooms"];
+                if (typeof rooms === 'number') {
+                    rooms = rooms > 1 ? `${rooms-1}+1` : "1+1";
+                }
+                
+                let balcony = data["Balcony"];
+                if (balcony === "Available" || balcony === "Var") {
+                    balcony = "Yes";
+                } else if (balcony === "Not Available" || balcony === "Yok") {
+                    balcony = "No";
+                }
+                
+                let buildingAge = data["Building Age"];
+                if (typeof buildingAge === 'number') {
+                    if (buildingAge <= 5) buildingAge = "0-5 between";
+                    else if (buildingAge <= 10) buildingAge = "5-10 between";
+                    else if (buildingAge <= 15) buildingAge = "10-15 between";
+                    else if (buildingAge <= 20) buildingAge = "15-20 between";
+                    else buildingAge = "20+ older";
+                }
+                
+                let heating = data["Heating"];
+                if (heating && heating.includes("Natural Gas")) {
+                    heating = "Natural Gas";
+                } else if (heating && heating.includes("Central")) {
+                    heating = "Central";
+                } else {
+                    heating = "Central";
+                }
+                
+                let fromWho = data["From who"];
+                if (fromWho === "From the real estate office" || fromWho === "Emlakçı") {
+                    fromWho = "Agent";
+                } else {
+                    fromWho = "Owner";
+                }
+                
+                let usingStatus = data["Using status"];
+                if (usingStatus === "Property owner" || usingStatus === "Boş") {
+                    usingStatus = "Empty";
+                } else if (usingStatus === "Tenant" || usingStatus === "Kiracılı") {
+                    usingStatus = "Tenant";
+                } else {
+                    usingStatus = "Empty";
+                }
+                
+                return {
+                    "District": data.District,
+                    "Neighborhood": data.Neighborhood,
+                    "m² (Gross)": parseInt(data["m² (Gross)"]),
+                    "m² (Net)": parseInt(data["m² (Net)"]),
+                    "Number of rooms": rooms,
+                    "Building Age": buildingAge,
+                    "Floor location": data["Floor location"].toString(),
+                    "Number of floors": parseInt(data["Number of floors"]),
+                    "Heating": heating,
+                    "Number of bathrooms": parseInt(data["Number of bathrooms"]) || 1,
+                    "Balcony": balcony,
+                    "Furnished": data["Furnished"] === "Yes" || data["Furnished"] === "Evet" ? "Yes" : "No",
+                    "Using status": usingStatus,
+                    "Available for Loan": data["Available for Loan"] === "Yes" || data["Available for Loan"] === "Evet" ? "Yes" : "No",
+                    "From who": fromWho,
+                    "Swap": data["Swap"] === "Yes" || data["Swap"] === "Evet" ? "Yes" : "No"
+                };
+            };
+
+            const requestData = convertToAPIFormat(property);
+            console.log('🔮 Detay sayfası - Fiyat tahmini:', requestData);
+
+            const result = await apiCall(API_ENDPOINTS.PREDICT, {
+                method: 'POST',
+                body: JSON.stringify(requestData)
+            });
+
+            let predictedPrice = null;
+            if (typeof result === 'number') {
+                predictedPrice = result;
+            } else if (result.predicted_price) {
+                predictedPrice = result.predicted_price;
+            } else if (result.prediction) {
+                predictedPrice = result.prediction;
+            } else if (result.price) {
+                predictedPrice = result.price;
+            } else if (result.data) {
+                predictedPrice = result.data;
+            }
+
+            if (!predictedPrice || isNaN(predictedPrice)) {
+                throw new Error('Tahmin edilen fiyat geçersiz');
+            }
+
+            const actualPrice = property.Price;
+            const difference = ((actualPrice - predictedPrice) / predictedPrice) * 100;
+            let status = 'normal';
+            
+            if (difference > 15) {
+                status = 'expensive';
+            } else if (difference < -15) {
+                status = 'cheap';
+            }
+            
+            setPrediction({
+                predicted: predictedPrice,
+                actual: actualPrice,
+                difference: difference.toFixed(1),
+                status: status
+            });
+            
+        } catch (error) {
+            console.error('❌ Detay sayfası - Fiyat tahmini hatası:', error);
+            setPrediction({
+                error: 'Tahmin alınamadı'
+            });
+        } finally {
+            setPredicting(false);
+        }
+    };
 
     return (
         <div className="detail-modal-overlay" onClick={onClose}>
@@ -45,6 +174,92 @@ export default function PropertyDetail({ property, onClose, onToggleFavorite, is
                                 {property.Price.toLocaleString('tr-TR')} ₺
                             </span>
                         </div>
+                    </div>
+
+                    {/* AI Fiyat Tahmini Butonu */}
+                    <div className="detail-prediction-section">
+                        <button 
+                            className="detail-predict-btn"
+                            onClick={handlePredictPrice}
+                            disabled={predicting}
+                        >
+                            {predicting ? (
+                                <>
+                                    <span className="spinner-small"></span>
+                                    <span>Tahmin ediliyor...</span>
+                                </>
+                            ) : prediction ? (
+                                <>
+                                    <span>🔄</span>
+                                    <span>Yeniden Tahmin Et</span>
+                                </>
+                            ) : (
+                                <>
+                                    <span>🔮</span>
+                                    <span>AI ile Fiyat Tahmini</span>
+                                </>
+                            )}
+                        </button>
+
+                        {/* Tahmin Sonucu */}
+                        {prediction && !prediction.error && (
+                            <div className={`detail-prediction-result ${prediction.status}`}>
+                                <div className="prediction-result-header">
+                                    {prediction.status === 'expensive' && (
+                                        <>
+                                            <span className="result-icon">📈</span>
+                                            <span className="result-title">Fiyat Ortalamanın Üzerinde</span>
+                                        </>
+                                    )}
+                                    {prediction.status === 'cheap' && (
+                                        <>
+                                            <span className="result-icon">📉</span>
+                                            <span className="result-title">Fiyat Ortalamanın Altında</span>
+                                        </>
+                                    )}
+                                    {prediction.status === 'normal' && (
+                                        <>
+                                            <span className="result-icon">✅</span>
+                                            <span className="result-title">Fiyat Normal Seviyede</span>
+                                        </>
+                                    )}
+                                </div>
+                                <div className="prediction-result-body">
+                                    <div className="prediction-stat">
+                                        <span className="stat-label">AI Tahmini</span>
+                                        <span className="stat-value">{prediction.predicted.toLocaleString('tr-TR')} ₺</span>
+                                    </div>
+                                    <div className="prediction-stat">
+                                        <span className="stat-label">İlan Fiyatı</span>
+                                        <span className="stat-value">{prediction.actual.toLocaleString('tr-TR')} ₺</span>
+                                    </div>
+                                    <div className="prediction-stat">
+                                        <span className="stat-label">Fark</span>
+                                        <span className={`stat-value ${prediction.status}`}>
+                                            {prediction.difference > 0 ? '+' : ''}{prediction.difference}%
+                                        </span>
+                                    </div>
+                                </div>
+                                <p className="prediction-note">
+                                    {prediction.status === 'expensive' && 
+                                        `Bu ilan, benzer özelliklerdeki evlere göre %${Math.abs(prediction.difference)} daha pahalı.`
+                                    }
+                                    {prediction.status === 'cheap' && 
+                                        `Bu ilan, benzer özelliklerdeki evlere göre %${Math.abs(prediction.difference)} daha ucuz. İyi bir fırsat olabilir!`
+                                    }
+                                    {prediction.status === 'normal' && 
+                                        'Bu ilanın fiyatı piyasa ortalamasına uygun.'
+                                    }
+                                </p>
+                            </div>
+                        )}
+
+                        {prediction && prediction.error && (
+                            <div className="detail-prediction-error">
+                                <span>⚠️</span>
+                                <span>{prediction.error}</span>
+                            </div>
+                        )}
                     </div>
 
                     {/* Key Features */}

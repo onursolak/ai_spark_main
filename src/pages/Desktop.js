@@ -2,10 +2,10 @@ import React, { useEffect, useState } from 'react';
 import '../style/Desktop.css';
 import HouseImg from '../style/imgs/house.jpeg';
 import jsonDatas from '../data/data.json';
-import { Client } from "@gradio/client";
 import HeatmapView from '../components/HeatmapView';
+import { API_ENDPOINTS, apiCall } from '../config/api';
 
-export default function Desktop({ viewMode, onToggleFavorite, isFavorite, onViewDetail }) {
+export default function Desktop({ viewMode, onToggleFavorite, isFavorite, onViewDetail, metadata }) {
     // --- STATE TANIMLARI ---
     // İlçe zaten vardı, diğerlerini ekliyoruz:
     const [secilenMahalle, setSecilenMahalle] = useState(""); // Seçilen mahalle ismi
@@ -26,9 +26,18 @@ export default function Desktop({ viewMode, onToggleFavorite, isFavorite, onView
 
     const [aiMode, setAiMode] = useState(true);
 
-    const [gradioClient, setGradioClient] = useState(null); // Bağlantıyı tutacak state
-    const [isConnecting, setIsConnecting] = useState(false);
     const [aiTyping, setAiTyping] = useState(false);
+    
+    // Fiyat tahmini için state'ler
+    const [predictions, setPredictions] = useState({}); // { index: { predicted: number, status: 'normal'|'expensive'|'cheap' } }
+    const [autoPredicting, setAutoPredicting] = useState(false); // Otomatik tahmin yapılıyor mu?
+
+    // Pagination state'leri
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 20;
+
+    // Sidebar toggle state
+    const [sidebarOpen, setSidebarOpen] = useState(true);
 
     const [messages, setMessages] = useState([
         { 
@@ -37,42 +46,56 @@ export default function Desktop({ viewMode, onToggleFavorite, isFavorite, onView
         },
     ]);
 
+
+    // 2. Sayfa ilk açıldığında çalışır - Backend'den metadata'yı al
     useEffect(() => {
-        const connectToGradio = async () => {
+        const fetchMetadata = async () => {
             try {
-                console.log("🔌 Gradio sunucusuna bağlanılıyor...");
-                const client = await Client.connect("https://887d2b115212a7e122.gradio.live/");
-                setGradioClient(client);
-                setIsConnecting(true);
-                console.log("✅ Bağlantı başarılı!");
+                // Eğer üst component'ten metadata gelmediyse, burada çek
+                if (!metadata) {
+                    const data = await apiCall(API_ENDPOINTS.META);
+                    console.log('Metadata alındı:', data);
+                    
+                    // Metadata'dan ilçeleri al
+                    if (data.districts) {
+                        const districtsWithIds = data.districts.map((name, index) => ({
+                            id: `district-${index}`,
+                            name: name
+                        }));
+                        setIlceler(districtsWithIds);
+                    }
+                } else {
+                    // Metadata prop'tan geldi
+                    if (metadata.districts) {
+                        const districtsWithIds = metadata.districts.map((name, index) => ({
+                            id: `district-${index}`,
+                            name: name
+                        }));
+                        setIlceler(districtsWithIds);
+                    }
+                }
             } catch (error) {
-                console.error("❌ Bağlantı hatası:", error);
-                setIsConnecting(false);
+                console.error("Metadata çekilemedi:", error);
+                // Hata durumunda eski API'yi kullan (fallback)
+                fetch('https://turkiyeapi.dev/api/v1/provinces/34')
+                    .then(res => res.json())
+                    .then(response => {
+                        if (response.data && response.data.districts) {
+                            setIlceler(response.data.districts);
+                        }
+                    })
+                    .catch(err => {
+                        console.error("İlçeler çekilemedi:", err);
+                    });
             }
         };
-        connectToGradio();
-    }, []);
-
-
-    // 2. Sayfa ilk açıldığında çalışır (Sadece İstanbul İlçeleri)
-    useEffect(() => {
-        fetch('https://turkiyeapi.dev/api/v1/provinces/34')
-            .then(res => res.json())
-            .then(response => {
-                // API'den gelen veri yapısı: response.data.districts
-                if (response.data && response.data.districts) {
-                    setIlceler(response.data.districts);
-                }
-            })
-            .catch(err => {
-                console.error("İlçeler çekilemedi:", err);
-            });
-    }, []);
+        
+        fetchMetadata();
+    }, [metadata]);
 
     // 3. Kullanıcı bir İLÇE seçtiğinde çalışır
-    const handleIlceChange = (e) => {
+    const handleIlceChange = async (e) => {
         const ilceId = e.target.value;
-
         setSecilenIlceId(ilceId); // Seçilen ID'yi state'e at
         setMahalleler([]);        // Eski mahalleleri temizle (Önemli!)
 
@@ -80,25 +103,285 @@ export default function Desktop({ viewMode, onToggleFavorite, isFavorite, onView
         if (ilceId) {
             setYukleniyor(true); // Yükleniyor yazısını göster
 
-            fetch(`https://turkiyeapi.dev/api/v1/districts/${ilceId}`)
-                .then(res => res.json())
-                .then(response => {
-                    setYukleniyor(false); // Yükleme bitti
-                    if (response.data && response.data.neighborhoods) {
-                        setMahalleler(response.data.neighborhoods);
+            try {
+                // Seçilen ilçenin adını bul
+                const selectedDistrictName = ilceler.find(i => i.id === ilceId)?.name;
+                
+                // Metadata'dan o ilçeye ait mahalleleri bul
+                if (metadata && metadata.neighborhoods && selectedDistrictName) {
+                    const districtNeighborhoods = metadata.neighborhoods[selectedDistrictName];
+                    
+                    if (districtNeighborhoods && Array.isArray(districtNeighborhoods)) {
+                        // Mahalle isimlerini uygun formata çevir
+                        const formattedNeighborhoods = districtNeighborhoods.map((name, index) => ({
+                            id: `${ilceId}-${index}`,
+                            name: name
+                        }));
+                        setMahalleler(formattedNeighborhoods);
                     }
-                })
-                .catch(err => {
-                    setYukleniyor(false);
-                    console.error("Mahalleler çekilemedi:", err);
-                });
+                } else {
+                    // Metadata yoksa backend'den al
+                    const metadataResponse = await apiCall(API_ENDPOINTS.META);
+                    
+                    if (metadataResponse.neighborhoods && selectedDistrictName) {
+                        const districtNeighborhoods = metadataResponse.neighborhoods[selectedDistrictName];
+                        
+                        if (districtNeighborhoods && Array.isArray(districtNeighborhoods)) {
+                            const formattedNeighborhoods = districtNeighborhoods.map((name, index) => ({
+                                id: `${ilceId}-${index}`,
+                                name: name
+                            }));
+                            setMahalleler(formattedNeighborhoods);
+                        }
+                    }
+                }
+                setYukleniyor(false);
+            } catch (error) {
+                console.error("Mahalleler backend'den alınamadı, fallback API kullanılıyor:", error);
+                // Fallback: Eski API'yi kullan
+                fetch(`https://turkiyeapi.dev/api/v1/districts/${ilceId}`)
+                    .then(res => res.json())
+                    .then(response => {
+                        setYukleniyor(false);
+                        if (response.data && response.data.neighborhoods) {
+                            setMahalleler(response.data.neighborhoods);
+                        }
+                    })
+                    .catch(err => {
+                        setYukleniyor(false);
+                        console.error("Mahalleler çekilemedi:", err);
+                    });
+            }
         }
     }
     
+    // Otomatik fiyat tahmini - tüm görünen ilanlar için
+    useEffect(() => {
+        const autoPredictPrices = async () => {
+            if (data.length === 0 || autoPredicting) return;
+            
+            setAutoPredicting(true);
+            console.log('🤖 Otomatik tahmin başlatılıyor...', data.length, 'ilan');
+            
+            // Sayfalamadan sonraki ilanları al
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            const currentPageData = data.slice(startIndex, endIndex);
+            
+            // Her ilan için tahmin yap (paralel olarak, ama rate limiting için sıralı)
+            for (let i = 0; i < currentPageData.length; i++) {
+                const actualIndex = startIndex + i;
+                const ilan = currentPageData[i];
+                
+                // Zaten tahmin yapılmışsa atla
+                if (predictions[actualIndex]) {
+                    continue;
+                }
+                
+                try {
+                    await handlePredictPrice(ilan, actualIndex, true); // true = silent mode
+                    // Rate limiting için kısa bekleme
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                } catch (error) {
+                    console.error(`İlan ${actualIndex} için tahmin hatası:`, error);
+                }
+            }
+            
+            setAutoPredicting(false);
+            console.log('✅ Otomatik tahmin tamamlandı');
+        };
+        
+        // Sayfa veya data değiştiğinde otomatik tahmin yap
+        autoPredictPrices();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [currentPage, data]); // predictions'ı dependency'den çıkardık (infinite loop önleme)
+    
+    // Fiyat tahmini fonksiyonu
+    const handlePredictPrice = async (ilan, index, silent = false) => {
+        
+        try {
+            // Veriyi API formatına dönüştür
+            const convertToAPIFormat = (data) => {
+                // Number of rooms dönüştürme
+                let rooms = data["Number of rooms"];
+                if (typeof rooms === 'number') {
+                    // 4 -> "3+1", 3 -> "2+1", 2 -> "1+1", vb.
+                    rooms = rooms > 1 ? `${rooms-1}+1` : "1+1";
+                }
+                
+                // Balcony dönüştürme
+                let balcony = data["Balcony"];
+                if (balcony === "Available" || balcony === "Var") {
+                    balcony = "Yes";
+                } else if (balcony === "Not Available" || balcony === "Yok") {
+                    balcony = "No";
+                }
+                
+                // Building Age dönüştürme
+                let buildingAge = data["Building Age"];
+                if (typeof buildingAge === 'number') {
+                    if (buildingAge <= 5) buildingAge = "0-5 between";
+                    else if (buildingAge <= 10) buildingAge = "5-10 between";
+                    else if (buildingAge <= 15) buildingAge = "10-15 between";
+                    else if (buildingAge <= 20) buildingAge = "15-20 between";
+                    else buildingAge = "20+ older";
+                }
+                
+                // Heating dönüştürme
+                let heating = data["Heating"];
+                if (heating && heating.includes("Natural Gas")) {
+                    heating = "Natural Gas";
+                } else if (heating && heating.includes("Central")) {
+                    heating = "Central";
+                } else if (!heating) {
+                    heating = "Central";
+                }
+                
+                // From who dönüştürme
+                let fromWho = data["From who"];
+                if (fromWho === "From the real estate office" || fromWho === "Emlakçı") {
+                    fromWho = "Agent";
+                } else if (fromWho === "Property owner" || fromWho === "Mal Sahibi") {
+                    fromWho = "Owner";
+                } else {
+                    fromWho = "Owner";
+                }
+                
+                // Using status dönüştürme
+                let usingStatus = data["Using status"];
+                if (usingStatus === "Property owner" || usingStatus === "Boş") {
+                    usingStatus = "Empty";
+                } else if (usingStatus === "Tenant" || usingStatus === "Kiracılı") {
+                    usingStatus = "Tenant";
+                } else {
+                    usingStatus = "Empty";
+                }
+                
+                return {
+                    "District": data.District,
+                    "Neighborhood": data.Neighborhood,
+                    "m² (Gross)": parseInt(data["m² (Gross)"]),
+                    "m² (Net)": parseInt(data["m² (Net)"]),
+                    "Number of rooms": rooms,
+                    "Building Age": buildingAge,
+                    "Floor location": data["Floor location"].toString(),
+                    "Number of floors": parseInt(data["Number of floors"]),
+                    "Heating": heating,
+                    "Number of bathrooms": parseInt(data["Number of bathrooms"]) || 1,
+                    "Balcony": balcony,
+                    "Furnished": data["Furnished"] === "Yes" || data["Furnished"] === "Evet" ? "Yes" : "No",
+                    "Using status": usingStatus,
+                    "Available for Loan": data["Available for Loan"] === "Yes" || data["Available for Loan"] === "Evet" ? "Yes" : "No",
+                    "From who": fromWho,
+                    "Swap": data["Swap"] === "Yes" || data["Swap"] === "Evet" ? "Yes" : "No"
+                };
+            };
+
+            const requestData = convertToAPIFormat(ilan);
+
+            if (!silent) {
+                console.log('🔮 Fiyat tahmini isteği gönderiliyor:', requestData);
+            }
+
+            const result = await apiCall(API_ENDPOINTS.PREDICT, {
+                method: 'POST',
+                body: JSON.stringify(requestData)
+            });
+
+            if (!silent) {
+                console.log('✅ Tahmin sonucu geldi:', result);
+            }
+
+            // Response'tan fiyatı al - farklı formatları dene
+            let predictedPrice = null;
+            
+            if (typeof result === 'number') {
+                predictedPrice = result;
+            } else if (result.predicted_price) {
+                predictedPrice = result.predicted_price;
+            } else if (result.prediction) {
+                predictedPrice = result.prediction;
+            } else if (result.price) {
+                predictedPrice = result.price;
+            } else if (result.data) {
+                predictedPrice = result.data;
+            }
+
+            if (!silent) {
+                console.log('💰 Tahmin edilen fiyat:', predictedPrice);
+                console.log('💵 Gerçek fiyat:', ilan.Price);
+            }
+
+            if (!predictedPrice || isNaN(predictedPrice)) {
+                throw new Error('Tahmin edilen fiyat geçersiz: ' + JSON.stringify(result));
+            }
+
+            const actualPrice = ilan.Price;
+            
+            // Fiyat karşılaştırması yap
+            const difference = ((actualPrice - predictedPrice) / predictedPrice) * 100;
+            let status = 'normal';
+            
+            if (difference > 15) {
+                status = 'expensive'; // Pahalı
+            } else if (difference < -15) {
+                status = 'cheap'; // Ucuz
+            }
+            
+            if (!silent) {
+                console.log(`📊 Fark: %${difference.toFixed(1)} - Durum: ${status}`);
+            }
+            
+            setPredictions(prev => ({
+                ...prev,
+                [index]: {
+                    predicted: predictedPrice,
+                    actual: actualPrice,
+                    difference: difference.toFixed(1),
+                    status: status
+                }
+            }));
+            
+        } catch (error) {
+            if (!silent) {
+                console.error('❌ Fiyat tahmini hatası:', error);
+                console.error('Hata detayı:', error.message);
+            }
+            setPredictions(prev => ({
+                ...prev,
+                [index]: {
+                    error: 'Tahmin alınamadı'
+                }
+            }));
+        }
+    }
+    
+    // Pagination hesaplamaları
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const currentItems = data.slice(indexOfFirstItem, indexOfLastItem);
+    const totalPages = Math.ceil(data.length / itemsPerPage);
+    
+    const paginate = (pageNumber) => {
+        setCurrentPage(pageNumber);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+    
   return (
-    <div className={`desktop-container ${aiMode ? 'grid-big' : 'grid-small'}`}>
+    <div className="desktop-wrapper">
+        {/* Sidebar Toggle Button */}
+        <button 
+            className="sidebar-toggle-btn"
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            title={sidebarOpen ? "Kenar çubuğunu gizle" : "Kenar çubuğunu göster"}
+        >
+            {sidebarOpen ? '◀' : '▶'}
+        </button>
+
+        <div className={`desktop-container ${aiMode ? 'grid-big' : 'grid-small'} ${!sidebarOpen ? 'sidebar-closed' : ''}`}>
         
         {/* SOL TARAF: FİLTRELEME ALANI */}
+        {sidebarOpen && (
         <aside className='filter-sidebar'>
 
             <div className='filter-sidebar-header' style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
@@ -117,37 +400,24 @@ export default function Desktop({ viewMode, onToggleFavorite, isFavorite, onView
                 (
                     <>
                         <div className="ai-chat-container">
-                            {/* Mesaj Listesi Alanı */}
-                            <div className="chat-messages">
-                                {isConnecting && messages.map((msg, index) => (
-                                    <div key={index} className={`message-bubble ${msg.sender === 'user' ? 'user-msg' : 'ai-msg'}`}>
-                                        {msg.text}
-                                    </div>
-                                ))}
+                        {/* Mesaj Listesi Alanı */}
+                        <div className="chat-messages">
+                            {messages.map((msg, index) => (
+                                <div key={index} className={`message-bubble ${msg.sender === 'user' ? 'user-msg' : 'ai-msg'}`}>
+                                    {msg.text}
+                                </div>
+                            ))}
 
-                                {!isConnecting &&
-                                    <div className={`message-bubble ${'ai-msg'}`}>
-                                        <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                                            <span style={{ fontSize: '12px' }}>Bağlanılıyor</span>
-                                            <div style={{ display: 'flex', gap: '3px' }}>
-                                                <span className="loading-dot">.</span>
-                                                <span className="loading-dot" style={{ animationDelay: '0.2s' }}>.</span>
-                                                <span className="loading-dot" style={{ animationDelay: '0.4s' }}>.</span>
-                                            </div>
-                                        </div>
+                            {aiTyping &&
+                                <div className={`message-bubble ${'ai-msg'}`}>
+                                    <div style={{ display: 'flex', gap: '4px', padding: '5px 0' }}>
+                                        <span className="typing-dot"></span>
+                                        <span className="typing-dot" style={{ animationDelay: '0.2s' }}></span>
+                                        <span className="typing-dot" style={{ animationDelay: '0.4s' }}></span>
                                     </div>
-                                }
-
-                                {isConnecting && aiTyping &&
-                                    <div className={`message-bubble ${'ai-msg'}`}>
-                                        <div style={{ display: 'flex', gap: '4px', padding: '5px 0' }}>
-                                            <span className="typing-dot"></span>
-                                            <span className="typing-dot" style={{ animationDelay: '0.2s' }}></span>
-                                            <span className="typing-dot" style={{ animationDelay: '0.4s' }}></span>
-                                        </div>
-                                    </div>
-                                }
-                            </div>
+                                </div>
+                            }
+                        </div>
 
                             {/* Mesaj Yazma Alanı */}
                             <div className="chat-input-area">
@@ -157,13 +427,9 @@ export default function Desktop({ viewMode, onToggleFavorite, isFavorite, onView
                                     onChange={(e) => setInput(e.target.value)}
                                     rows="2"
                                 />
-                                <button 
-                                    className="send-btn"
-                                    disabled={!isConnecting || !gradioClient} 
-                                    style={{ opacity: !isConnecting ? 0.5 : 1, cursor: !isConnecting ? 'wait' : 'pointer' }}
-                                    
-                                    onClick={async () => {
-                                        if (!gradioClient) return;
+                            <button 
+                                className="send-btn"
+                                onClick={async () => {
                                         try {
                                             if (input.trim() !== '') {
                                                 setAiTyping(true);
@@ -171,26 +437,40 @@ export default function Desktop({ viewMode, onToggleFavorite, isFavorite, onView
                                                     ...prev, 
                                                     { sender: 'user', text: input }
                                                 ]);
+                                                const userInput = input;
                                                 setInput("");
 
-                                                const result = await gradioClient.predict("/generate_response", [ 
-                                                    input 
-                                                ]);
+                                                // Yeni backend API'yi kullan
+                                                const result = await apiCall(API_ENDPOINTS.ASK, {
+                                                    method: 'POST',
+                                                    body: JSON.stringify({
+                                                        prompt: userInput
+                                                    })
+                                                });
+
                                                 setAiTyping(false);
+                                                
+                                                // Backend response'unu kontrol et
+                                                const aiResponse = result.response || result.answer || result.data || 'Yanıt alınamadı.';
+                                                
                                                 setMessages(prev => [
                                                     ...prev, 
-                                                    { sender: 'ai', text: result.data[0] }
+                                                    { sender: 'ai', text: aiResponse }
                                                 ]);
                                             }
                                             
                                         } catch (e) {
                                             setAiTyping(false);
-                                            console.error("Tahmin hatası:", e);
+                                            console.error("AI yanıt hatası:", e);
+                                            setMessages(prev => [
+                                                ...prev, 
+                                                { sender: 'ai', text: 'Üzgünüm, bir hata oluştu. Lütfen tekrar deneyin.' }
+                                            ]);
                                         }
-                                    }}  
-                                >
-                                    {isConnecting ? "➤" : "..."}
-                                </button>
+                                }}  
+                            >
+                                ➤
+                            </button>
                             </div>
                         </div>
                     </>
@@ -307,12 +587,13 @@ export default function Desktop({ viewMode, onToggleFavorite, isFavorite, onView
                 )
             }
         </aside>
+        )}
 
 
 
 
         {/* SAĞ TARAF: İLAN LİSTESİ veya HARİTA */}
-        <main className='results-area'>
+        <main className={`results-area ${!sidebarOpen ? 'full-width' : ''}`}>
             {viewMode === 'list' ? (
                 <>
                     {/* İstatistik Kartları */}
@@ -442,16 +723,19 @@ export default function Desktop({ viewMode, onToggleFavorite, isFavorite, onView
                             </button>
                         </div>
                     ) : (
-                        data.map((ilan, index) => (
+                        currentItems.map((ilan, relativeIndex) => {
+                            // Gerçek index'i hesapla (pagination için)
+                            const actualIndex = indexOfFirstItem + relativeIndex;
+                            return (
                         /* JSON'da unique bir ID olmadığı için key olarak index kullandık */
-                        <div className="card" key={index}>
+                        <div className="card" key={actualIndex}>
                             
                             <div className="card-image-wrapper">
                                 {/* Resim şimdilik sabit, verinde resim URL'i yok */}
                                 <img src={HouseImg} alt={`${ilan.District} Satılık Daire`} />
                                 
                                 {/* Yeni Badge */}
-                                {index < 3 && <div className="card-badge">✨ Yeni</div>}
+                                {relativeIndex < 3 && actualIndex < 3 && <div className="card-badge">✨ Yeni</div>}
                                 
                                 {/* Favorite Button */}
                                 <button 
@@ -473,6 +757,49 @@ export default function Desktop({ viewMode, onToggleFavorite, isFavorite, onView
                                     <p className="price">
                                         {ilan.Price.toLocaleString('tr-TR')} TL
                                     </p>
+                                    
+                                    {/* Fiyat Tahmin Sonucu */}
+                                    {predictions[actualIndex] && !predictions[actualIndex].error && (
+                                        <div className={`price-prediction ${predictions[actualIndex].status}`}>
+                                            <div className="prediction-content">
+                                                {predictions[actualIndex].status === 'expensive' && (
+                                                    <>
+                                                        <span className="prediction-icon">📈</span>
+                                                        <span className="prediction-text">Piyasa ortalamasına göre %{Math.abs(predictions[actualIndex].difference)} pahalı</span>
+                                                    </>
+                                                )}
+                                                {predictions[actualIndex].status === 'cheap' && (
+                                                    <>
+                                                        <span className="prediction-icon">📉</span>
+                                                        <span className="prediction-text">Piyasa ortalamasına göre %{Math.abs(predictions[actualIndex].difference)} ucuz</span>
+                                                    </>
+                                                )}
+                                                {predictions[actualIndex].status === 'normal' && (
+                                                    <>
+                                                        <span className="prediction-icon">✅</span>
+                                                        <span className="prediction-text">Fiyat normal seviyede</span>
+                                                    </>
+                                                )}
+                                            </div>
+                                            <div className="prediction-detail">
+                                                Tahmin: {predictions[actualIndex].predicted.toLocaleString('tr-TR')} TL
+                                            </div>
+                                        </div>
+                                    )}
+                                    
+                                    {predictions[actualIndex] && predictions[actualIndex].error && (
+                                        <div className="price-prediction error">
+                                            <span className="prediction-icon">⚠️</span>
+                                            <span className="prediction-text">{predictions[actualIndex].error}</span>
+                                        </div>
+                                    )}
+                                    
+                                    {!predictions[actualIndex] && (
+                                        <div className="price-prediction loading">
+                                            <span className="spinner-small"></span>
+                                            <span className="prediction-text">Tahmin yapılıyor...</span>
+                                        </div>
+                                    )}
                                     
                                     <div className="features">
                                         <span>🏠 {ilan["Number of rooms"]}</span>
@@ -502,9 +829,59 @@ export default function Desktop({ viewMode, onToggleFavorite, isFavorite, onView
                                 
                             </div>
                         </div>
-                    ))
+                    );
+                    })
                     )}
                     </div>
+                    
+                    {/* Pagination */}
+                    {currentItems.length > 0 && totalPages > 1 && (
+                        <div className="pagination">
+                            <button 
+                                className="pagination-btn"
+                                onClick={() => paginate(currentPage - 1)}
+                                disabled={currentPage === 1}
+                            >
+                                ← Önceki
+                            </button>
+                            
+                            <div className="pagination-numbers">
+                                {[...Array(totalPages)].map((_, idx) => {
+                                    const pageNum = idx + 1;
+                                    // Sadece mevcut sayfanın etrafındaki sayfaları göster
+                                    if (
+                                        pageNum === 1 ||
+                                        pageNum === totalPages ||
+                                        (pageNum >= currentPage - 2 && pageNum <= currentPage + 2)
+                                    ) {
+                                        return (
+                                            <button
+                                                key={pageNum}
+                                                className={`pagination-number ${currentPage === pageNum ? 'active' : ''}`}
+                                                onClick={() => paginate(pageNum)}
+                                            >
+                                                {pageNum}
+                                            </button>
+                                        );
+                                    } else if (
+                                        pageNum === currentPage - 3 ||
+                                        pageNum === currentPage + 3
+                                    ) {
+                                        return <span key={pageNum} className="pagination-dots">...</span>;
+                                    }
+                                    return null;
+                                })}
+                            </div>
+                            
+                            <button 
+                                className="pagination-btn"
+                                onClick={() => paginate(currentPage + 1)}
+                                disabled={currentPage === totalPages}
+                            >
+                                Sonraki →
+                            </button>
+                        </div>
+                    )}
                 </>
             ) : (
                 <div className="map-container">
@@ -513,6 +890,7 @@ export default function Desktop({ viewMode, onToggleFavorite, isFavorite, onView
             )}
         </main>
 
+    </div>
     </div>
   )
 }
