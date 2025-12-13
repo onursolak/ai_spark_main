@@ -1,6 +1,7 @@
 import React from 'react';
 import '../style/Favorites.css';
 import HouseImg from '../style/imgs/house.jpeg';
+import { getPropertyMainImage } from '../utils/imageHelper';
 
 export default function Favorites({ favorites, onToggleFavorite, onViewDetail }) {
     return (
@@ -31,7 +32,13 @@ export default function Favorites({ favorites, onToggleFavorite, onViewDetail })
                     {favorites.map((ilan, index) => (
                         <div className="favorite-card" key={index}>
                             <div className="card-image-wrapper">
-                                <img src={HouseImg} alt={`${ilan.District} Satılık Daire`} />
+                                <img 
+                                    src={getPropertyMainImage(ilan)} 
+                                    alt={`${ilan.District} Satılık Daire`}
+                                    onError={(e) => {
+                                        e.target.src = HouseImg;
+                                    }}
+                                />
                                 
                                 <button 
                                     className="card-favorite favorited"

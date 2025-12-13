@@ -2,10 +2,13 @@ import React, { useState } from 'react';
 import '../style/PropertyDetail.css';
 import HouseImg from '../style/imgs/house.jpeg';
 import { API_ENDPOINTS, apiCall } from '../config/api';
+import { getPropertyImages } from '../utils/imageHelper';
 
 export default function PropertyDetail({ property, onClose, onToggleFavorite, isFavorite }) {
     const [predicting, setPredicting] = useState(false);
     const [prediction, setPrediction] = useState(null);
+    const [currentImageIndex, setCurrentImageIndex] = useState(0);
+    const propertyImages = getPropertyImages(property);
     
     if (!property) return null;
 
@@ -145,9 +148,66 @@ export default function PropertyDetail({ property, onClose, onToggleFavorite, is
                     </svg>
                 </button>
 
-                {/* Header Image */}
+                {/* Header Image Gallery */}
                 <div className="detail-header-image">
-                    <img src={HouseImg} alt={`${property.District} ${property.Neighborhood}`} />
+                    <img 
+                        src={propertyImages[currentImageIndex]} 
+                        alt={`${property.District} ${property.Neighborhood} - Resim ${currentImageIndex + 1}`}
+                        onError={(e) => {
+                            e.target.src = HouseImg;
+                        }}
+                    />
+                    
+                    {/* Image Navigation */}
+                    {propertyImages.length > 1 && (
+                        <>
+                            <button 
+                                className="image-nav-btn prev"
+                                onClick={() => setCurrentImageIndex((prev) => 
+                                    prev === 0 ? propertyImages.length - 1 : prev - 1
+                                )}
+                            >
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <polyline points="15 18 9 12 15 6"></polyline>
+                                </svg>
+                            </button>
+                            <button 
+                                className="image-nav-btn next"
+                                onClick={() => setCurrentImageIndex((prev) => 
+                                    prev === propertyImages.length - 1 ? 0 : prev + 1
+                                )}
+                            >
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <polyline points="9 18 15 12 9 6"></polyline>
+                                </svg>
+                            </button>
+                            
+                            {/* Image Counter */}
+                            <div className="image-counter">
+                                {currentImageIndex + 1} / {propertyImages.length}
+                            </div>
+                            
+                            {/* Thumbnail Navigation */}
+                            <div className="image-thumbnails">
+                                {propertyImages.map((img, idx) => (
+                                    <button
+                                        key={idx}
+                                        className={`thumbnail ${idx === currentImageIndex ? 'active' : ''}`}
+                                        onClick={() => setCurrentImageIndex(idx)}
+                                    >
+                                        <img 
+                                            src={img} 
+                                            alt={`Thumbnail ${idx + 1}`}
+                                            onError={(e) => {
+                                                e.target.src = HouseImg;
+                                            }}
+                                        />
+                                    </button>
+                                ))}
+                            </div>
+                        </>
+                    )}
+                    
                     <button 
                         className={`detail-favorite-btn ${isFavorite ? 'favorited' : ''}`}
                         onClick={() => onToggleFavorite(property)}

@@ -4,6 +4,7 @@ import HouseImg from '../style/imgs/house.jpeg';
 import jsonDatas from '../data/data.json';
 import HeatmapView from '../components/HeatmapView';
 import { API_ENDPOINTS, apiCall } from '../config/api';
+import { getPropertyMainImage } from '../utils/imageHelper';
 
 export default function Desktop({ viewMode, onToggleFavorite, isFavorite, onViewDetail, metadata }) {
     // --- STATE TANIMLARI ---
@@ -721,8 +722,15 @@ export default function Desktop({ viewMode, onToggleFavorite, isFavorite, onView
                         <div className="card" key={actualIndex}>
                             
                             <div className="card-image-wrapper">
-                                {/* Resim şimdilik sabit, verinde resim URL'i yok */}
-                                <img src={HouseImg} alt={`${ilan.District} Satılık Daire`} />
+                                {/* Resim dinamik olarak yükleniyor */}
+                                <img 
+                                    src={getPropertyMainImage(ilan)} 
+                                    alt={`${ilan.District} Satılık Daire`}
+                                    onError={(e) => {
+                                        // Resim yüklenemezse yedek resmi göster
+                                        e.target.src = HouseImg;
+                                    }}
+                                />
                                 
                                 {/* Yeni Badge */}
                                 {relativeIndex < 3 && actualIndex < 3 && <div className="card-badge">✨ Yeni</div>}

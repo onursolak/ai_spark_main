@@ -5,6 +5,7 @@ import Desktop from "./pages/Desktop";
 import Favorites from "./pages/Favorites";
 import PropertyDetail from "./pages/PropertyDetail";
 import PricePredictor from "./components/PricePredictor";
+import ImageDebugger from "./components/ImageDebugger";
 import { API_ENDPOINTS, apiCall } from './config/api';
 
 function App() {
