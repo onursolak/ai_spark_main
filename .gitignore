@@ -25,4 +25,4 @@ yarn-error.log*
 
 
 src/data/data.json
-src/kaggle_room_street_data
+public/kaggle_room_street_data
