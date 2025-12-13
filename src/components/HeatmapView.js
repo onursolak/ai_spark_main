@@ -183,6 +183,7 @@ export default function HeatmapView({ data }) {
     const [heatmapData, setHeatmapData] = useState([]);
     const [districtLabels, setDistrictLabels] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [showLabels, setShowLabels] = useState(false); // Başlangıçta kapalı
 
     // İstanbul'un merkezi
     const istanbulCenter = [41.0082, 28.9784];
@@ -353,14 +354,56 @@ export default function HeatmapView({ data }) {
                 />
                 
                 <HeatmapLayer points={heatmapData} />
-                <DistrictLabels districts={districtLabels} />
+                {showLabels && <DistrictLabels districts={districtLabels} />}
             </MapContainer>
+
+            {/* Fiyat Göster/Gizle Butonu */}
+            <div style={{
+                position: 'absolute',
+                top: '20px',
+                right: '20px',
+                zIndex: 1000,
+            }}>
+                <button
+                    onClick={() => setShowLabels(!showLabels)}
+                    style={{
+                        background: showLabels ? '#f27f0e' : 'white',
+                        color: showLabels ? 'white' : '#f27f0e',
+                        border: '2px solid #f27f0e',
+                        borderRadius: '8px',
+                        padding: '12px 20px',
+                        cursor: 'pointer',
+                        fontWeight: 'bold',
+                        fontSize: '14px',
+                        boxShadow: '0 2px 10px rgba(0,0,0,0.2)',
+                        transition: 'all 0.3s ease',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px'
+                    }}
+                    onMouseEnter={(e) => {
+                        if (!showLabels) {
+                            e.target.style.background = '#fff5ed';
+                        }
+                    }}
+                    onMouseLeave={(e) => {
+                        if (!showLabels) {
+                            e.target.style.background = 'white';
+                        }
+                    }}
+                >
+                    <span style={{ fontSize: '16px' }}>
+                        {showLabels ? '🏷️' : '💰'}
+                    </span>
+                    {showLabels ? 'Fiyatları Gizle' : 'Fiyatları Göster'}
+                </button>
+            </div>
 
             {/* Legend (açıklama) */}
             <div style={{
                 position: 'absolute',
                 bottom: '20px',
-                right: '20px',
+                left: '20px',
                 background: 'white',
                 padding: '15px',
                 borderRadius: '8px',
