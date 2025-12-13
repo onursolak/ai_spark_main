@@ -5,7 +5,7 @@ import jsonDatas from '../data/data.json';
 import { Client } from "@gradio/client";
 import HeatmapView from '../components/HeatmapView';
 
-export default function Desktop() {
+export default function Desktop({ viewMode, onToggleFavorite, isFavorite, onViewDetail }) {
     // --- STATE TANIMLARI ---
     // İlçe zaten vardı, diğerlerini ekliyoruz:
     const [secilenMahalle, setSecilenMahalle] = useState(""); // Seçilen mahalle ismi
@@ -36,8 +36,6 @@ export default function Desktop() {
             text: 'Merhaba! Size nasıl bir ev bakıyoruz?' 
         },
     ]);
-
-    const [viewMode, setViewMode] = useState('list'); // 'list' veya 'map'
 
     useEffect(() => {
         const connectToGradio = async () => {
@@ -103,14 +101,14 @@ export default function Desktop() {
         {/* SOL TARAF: FİLTRELEME ALANI */}
         <aside className='filter-sidebar'>
 
-            <div className='filter-sidebar-header' style={{display: 'flex', justifyContent: 'space-between'}}>
-                <h3 style={{color: "#9c7349"}}>{aiMode ? "Chatbot" : "Filtrele"}</h3>
+            <div className='filter-sidebar-header' style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                <h3>{aiMode ? "🤖 Chatbot" : "🔍 Filtrele"}</h3>
                 <h4 style={{cursor: 'pointer'}}
                     onClick={()=>{
                         setAiMode(!aiMode)
                     }}
                 >
-                    Modu değiştir
+                    {aiMode ? "⚙️ " : "💬 "}Modu değiştir
                 </h4>
             </div>
 
@@ -129,13 +127,24 @@ export default function Desktop() {
 
                                 {!isConnecting &&
                                     <div className={`message-bubble ${'ai-msg'}`}>
-                                        Bağlanılıyor...
+                                        <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                                            <span style={{ fontSize: '12px' }}>Bağlanılıyor</span>
+                                            <div style={{ display: 'flex', gap: '3px' }}>
+                                                <span className="loading-dot">.</span>
+                                                <span className="loading-dot" style={{ animationDelay: '0.2s' }}>.</span>
+                                                <span className="loading-dot" style={{ animationDelay: '0.4s' }}>.</span>
+                                            </div>
+                                        </div>
                                     </div>
                                 }
 
                                 {isConnecting && aiTyping &&
                                     <div className={`message-bubble ${'ai-msg'}`}>
-                                        ...
+                                        <div style={{ display: 'flex', gap: '4px', padding: '5px 0' }}>
+                                            <span className="typing-dot"></span>
+                                            <span className="typing-dot" style={{ animationDelay: '0.2s' }}></span>
+                                            <span className="typing-dot" style={{ animationDelay: '0.4s' }}></span>
+                                        </div>
                                     </div>
                                 }
                             </div>
@@ -289,30 +298,156 @@ export default function Desktop() {
 
         {/* SAĞ TARAF: İLAN LİSTESİ veya HARİTA */}
         <main className='results-area'>
-            {/* Görünüm Değiştirme Butonları */}
-            <div className="view-toggle">
-                <button 
-                    className={`toggle-btn ${viewMode === 'list' ? 'active' : ''}`}
-                    onClick={() => setViewMode('list')}
-                >
-                    📋 Liste
-                </button>
-                <button 
-                    className={`toggle-btn ${viewMode === 'map' ? 'active' : ''}`}
-                    onClick={() => setViewMode('map')}
-                >
-                    🗺️ Harita
-                </button>
-            </div>
-
             {viewMode === 'list' ? (
-                <div className="cards-grid">
-                    {data.map((ilan, index) => (
+                <>
+                    {/* İstatistik Kartları */}
+                    <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+                        gap: '20px',
+                        marginBottom: '30px'
+                    }}>
+                        <div className="stat-card">
+                            <div className="stat-card-icon" style={{background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)'}}>
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                                </svg>
+                            </div>
+                            <div className="stat-card-content">
+                                <span className="stat-card-label">Toplam İlan</span>
+                                <span className="stat-card-value">{data.length.toLocaleString('tr-TR')}</span>
+                                <span className="stat-card-change positive">+12% bu ay</span>
+                            </div>
+                        </div>
+
+                        <div className="stat-card">
+                            <div className="stat-card-icon" style={{background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)'}}>
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <line x1="12" y1="1" x2="12" y2="23"></line>
+                                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                                </svg>
+                            </div>
+                            <div className="stat-card-content">
+                                <span className="stat-card-label">Ort. Fiyat</span>
+                                <span className="stat-card-value">
+                                    {data.length > 0 
+                                        ? (data.reduce((sum, item) => sum + item.Price, 0) / data.length).toLocaleString('tr-TR', {maximumFractionDigits: 0})
+                                        : '0'} ₺
+                                </span>
+                                <span className="stat-card-change positive">+8% geçen aya göre</span>
+                            </div>
+                        </div>
+
+                        <div className="stat-card">
+                            <div className="stat-card-icon" style={{background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)'}}>
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                                    <circle cx="12" cy="10" r="3"></circle>
+                                </svg>
+                            </div>
+                            <div className="stat-card-content">
+                                <span className="stat-card-label">Bölge Sayısı</span>
+                                <span className="stat-card-value">
+                                    {new Set(data.map(item => item.District)).size}
+                                </span>
+                                <span className="stat-card-change neutral">İstanbul</span>
+                            </div>
+                        </div>
+
+                        <div className="stat-card">
+                            <div className="stat-card-icon" style={{background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)'}}>
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                                </svg>
+                            </div>
+                            <div className="stat-card-content">
+                                <span className="stat-card-label">Aktif Görüntüleme</span>
+                                <span className="stat-card-value">2.4K</span>
+                                <span className="stat-card-change positive">+18% bu hafta</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="cards-grid">
+                    {data.length === 0 ? (
+                        <div style={{
+                            gridColumn: '1 / -1',
+                            textAlign: 'center',
+                            padding: '80px 40px',
+                            background: 'linear-gradient(145deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 255, 255, 0.95) 100%)',
+                            backdropFilter: 'blur(10px)',
+                            borderRadius: '24px',
+                            border: '1px solid rgba(226, 232, 240, 0.6)',
+                            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.06)'
+                        }}>
+                            <div style={{ 
+                                fontSize: '80px', 
+                                marginBottom: '24px',
+                                animation: 'float 3s ease-in-out infinite'
+                            }}>🏠</div>
+                            <h3 style={{
+                                color: '#1e293b',
+                                marginBottom: '12px',
+                                fontSize: '1.8rem',
+                                fontWeight: '800'
+                            }}>
+                                Henüz İlan Bulunamadı
+                            </h3>
+                            <p style={{
+                                color: '#64748b',
+                                fontSize: '1.05rem',
+                                maxWidth: '400px',
+                                margin: '0 auto 24px',
+                                lineHeight: '1.6'
+                            }}>
+                                Lütfen filtreleri ayarlayın veya AI asistanından yardım alın
+                            </p>
+                            <button style={{
+                                padding: '12px 28px',
+                                background: 'linear-gradient(135deg, #f27f0e 0%, #d96d0b 100%)',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '14px',
+                                fontWeight: '700',
+                                fontSize: '0.95rem',
+                                cursor: 'pointer',
+                                boxShadow: '0 4px 15px rgba(242, 127, 14, 0.3)',
+                                transition: 'all 0.3s ease'
+                            }}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.transform = 'translateY(-2px)';
+                                e.currentTarget.style.boxShadow = '0 6px 20px rgba(242, 127, 14, 0.4)';
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.transform = 'translateY(0)';
+                                e.currentTarget.style.boxShadow = '0 4px 15px rgba(242, 127, 14, 0.3)';
+                            }}
+                            >
+                                🔍 Arama Başlat
+                            </button>
+                        </div>
+                    ) : (
+                        data.map((ilan, index) => (
                         /* JSON'da unique bir ID olmadığı için key olarak index kullandık */
                         <div className="card" key={index}>
                             
-                            {/* Resim şimdilik sabit, verinde resim URL'i yok */}
-                            <img src={HouseImg} alt={`${ilan.District} Satılık Daire`} />
+                            <div className="card-image-wrapper">
+                                {/* Resim şimdilik sabit, verinde resim URL'i yok */}
+                                <img src={HouseImg} alt={`${ilan.District} Satılık Daire`} />
+                                
+                                {/* Yeni Badge */}
+                                {index < 3 && <div className="card-badge">✨ Yeni</div>}
+                                
+                                {/* Favorite Button */}
+                                <button 
+                                    className={`card-favorite ${isFavorite(ilan) ? 'favorited' : ''}`}
+                                    onClick={() => onToggleFavorite(ilan)}
+                                >
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill={isFavorite(ilan) ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2">
+                                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                                    </svg>
+                                </button>
+                            </div>
                             
                             <div className="card-body">
                                 <div>
@@ -325,27 +460,26 @@ export default function Desktop() {
                                     </p>
                                     
                                     <div className="features">
-                                        {/* Oda Sayısı */}
-                                        <span>{ilan["Number of rooms"]} Oda </span> 
-                                        • 
-                                        {/* Metrekare (Köşeli parantez zorunlu çünkü key içinde boşluk var) */}
-                                        <span> {ilan["m² (Gross)"]} m² </span>
-                                        •
-                                        {/* Bulunduğu Kat */}
-                                        <span> {ilan["Floor location"]}. Kat</span>
+                                        <span>🏠 {ilan["Number of rooms"]}</span>
+                                        <span>📏 {ilan["m² (Gross)"]} m²</span>
+                                        <span>🏢 {ilan["Floor location"]}. Kat</span>
                                     </div>
                                     
-                                    <div style={{display: "flex", gap: "5px"}}>
-                                        <button className="detail-btn" style={{flex: 2}}>Detay Gör</button>
-                                        <button className="detail-btn" style={{flex: 1}}>
+                                    <div className="btn-group">
+                                        <button 
+                                            className="detail-btn btn-primary"
+                                            onClick={() => onViewDetail(ilan)}
+                                        >
+                                            📋 Detayları Gör
+                                        </button>
+                                        <button className="detail-btn btn-secondary">
                                             <a 
                                                 target='_blank' 
                                                 rel="noopener noreferrer"
-                                                /* Hem District hem Neighborhood bilgisini araya boşluk koyarak ekledik */
                                                 href={`https://www.google.com/maps/search/${ilan["District"]} ${ilan["Neighborhood"]}`}
-                                                style={{textDecoration: 'none', color: 'inherit'}}
+                                                style={{textDecoration: 'none', color: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px'}}
                                             >
-                                                Konum
+                                                📍
                                             </a>
                                         </button>
                                     </div>
@@ -353,8 +487,10 @@ export default function Desktop() {
                                 
                             </div>
                         </div>
-                    ))}
-                </div>
+                    ))
+                    )}
+                    </div>
+                </>
             ) : (
                 <div className="map-container">
                     <HeatmapView data={data} />

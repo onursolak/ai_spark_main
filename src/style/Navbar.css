@@ -2,6 +2,228 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0 10px;
-    /*border-bottom: 2px solid #ebe2d8;*/
+    padding: 16px 40px;
+    background: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.navbar.scrolled {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    padding: 12px 40px;
+}
+
+/* Logo Section */
+.navbar-brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+.navbar-brand:hover {
+    transform: translateY(-1px);
+}
+
+.logo-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.3s ease;
+}
+
+.logo-container:hover {
+    transform: rotate(5deg) scale(1.05);
+}
+
+.brand-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.brand-name {
+    font-size: 1.5rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #f27f0e 0%, #d96d0b 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: -0.5px;
+    line-height: 1;
+}
+
+.brand-tagline {
+    font-size: 0.7rem;
+    color: #64748b;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+/* Navigation Menu */
+.navbar-menu {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.nav-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    border-radius: 12px;
+    text-decoration: none;
+    color: #64748b;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.nav-link svg {
+    transition: transform 0.3s ease;
+}
+
+.nav-link:hover {
+    color: #f27f0e;
+    background: rgba(242, 127, 14, 0.08);
+    transform: translateY(-1px);
+}
+
+.nav-link:hover svg {
+    transform: scale(1.1);
+}
+
+.nav-link.active {
+    color: #f27f0e;
+    background: rgba(242, 127, 14, 0.12);
+    box-shadow: 0 2px 8px rgba(242, 127, 14, 0.2);
+}
+
+/* Actions Section */
+.navbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.action-btn {
+    position: relative;
+    width: 42px;
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: rgba(248, 250, 252, 0.8);
+    border-radius: 12px;
+    cursor: pointer;
+    color: #64748b;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.action-btn:hover {
+    background: rgba(242, 127, 14, 0.1);
+    color: #f27f0e;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(242, 127, 14, 0.15);
+}
+
+.action-btn.active-page {
+    background: rgba(242, 127, 14, 0.12);
+    color: #f27f0e;
+}
+
+.notification-btn {
+    position: relative;
+}
+
+.notification-badge {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 18px;
+    height: 18px;
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+    border-radius: 50%;
+    font-size: 0.7rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid white;
+    animation: pulse 2s infinite;
+}
+
+.favorites-count {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 4px;
+    background: linear-gradient(135deg, #f27f0e 0%, #d96d0b 100%);
+    color: white;
+    border-radius: 10px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid white;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+}
+
+.divider {
+    width: 1px;
+    height: 32px;
+    background: linear-gradient(to bottom, transparent, #e2e8f0, transparent);
+    margin: 0 8px;
+}
+
+.divider {
+    display: none;
+}
+
+/* User Profile - Hidden */
+.user-profile {
+    display: none;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .navbar-menu {
+        display: flex;
+    }
+}
+
+@media (max-width: 768px) {
+    .navbar {
+        padding: 12px 20px;
+    }
+    
+    .brand-tagline {
+        display: none;
+    }
 }

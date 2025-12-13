@@ -326,14 +326,41 @@ export default function HeatmapView({ data }) {
                     left: '50%',
                     transform: 'translate(-50%, -50%)',
                     zIndex: 1000,
-                    background: 'white',
-                    padding: '20px',
-                    borderRadius: '8px',
-                    boxShadow: '0 2px 10px rgba(0,0,0,0.1)'
+                    background: 'rgba(255, 255, 255, 0.95)',
+                    backdropFilter: 'blur(10px)',
+                    padding: '30px 40px',
+                    borderRadius: '20px',
+                    boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
+                    border: '1px solid rgba(255, 255, 255, 0.3)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '15px'
                 }}>
-                    Harita yükleniyor...
+                    <div style={{
+                        width: '40px',
+                        height: '40px',
+                        border: '4px solid rgba(242, 127, 14, 0.2)',
+                        borderTop: '4px solid #f27f0e',
+                        borderRadius: '50%',
+                        animation: 'spin 1s linear infinite'
+                    }}></div>
+                    <span style={{
+                        color: '#2c3e50',
+                        fontWeight: '600',
+                        fontSize: '15px'
+                    }}>
+                        Harita yükleniyor...
+                    </span>
                 </div>
             )}
+            
+            <style>{`
+                @keyframes spin {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                }
+            `}</style>
             
             <MapContainer
                 center={istanbulCenter}
@@ -367,28 +394,43 @@ export default function HeatmapView({ data }) {
                 <button
                     onClick={() => setShowLabels(!showLabels)}
                     style={{
-                        background: showLabels ? '#f27f0e' : 'white',
+                        background: showLabels 
+                            ? 'linear-gradient(135deg, #f27f0e 0%, #d96d0b 100%)' 
+                            : 'rgba(255, 255, 255, 0.95)',
+                        backdropFilter: 'blur(10px)',
                         color: showLabels ? 'white' : '#f27f0e',
-                        border: '2px solid #f27f0e',
-                        borderRadius: '8px',
+                        border: showLabels ? 'none' : '2px solid #f27f0e',
+                        borderRadius: '14px',
                         padding: '12px 20px',
                         cursor: 'pointer',
-                        fontWeight: 'bold',
+                        fontWeight: '700',
                         fontSize: '14px',
-                        boxShadow: '0 2px 10px rgba(0,0,0,0.2)',
-                        transition: 'all 0.3s ease',
+                        boxShadow: showLabels 
+                            ? '0 6px 20px rgba(242, 127, 14, 0.4)' 
+                            : '0 4px 15px rgba(0,0,0,0.1)',
+                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                         display: 'flex',
                         alignItems: 'center',
                         gap: '8px'
                     }}
                     onMouseEnter={(e) => {
                         if (!showLabels) {
-                            e.target.style.background = '#fff5ed';
+                            e.currentTarget.style.background = 'rgba(242, 127, 14, 0.1)';
+                            e.currentTarget.style.transform = 'translateY(-2px)';
+                            e.currentTarget.style.boxShadow = '0 6px 20px rgba(242, 127, 14, 0.2)';
+                        } else {
+                            e.currentTarget.style.transform = 'translateY(-2px)';
+                            e.currentTarget.style.boxShadow = '0 8px 25px rgba(242, 127, 14, 0.5)';
                         }
                     }}
                     onMouseLeave={(e) => {
                         if (!showLabels) {
-                            e.target.style.background = 'white';
+                            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.95)';
+                            e.currentTarget.style.transform = 'translateY(0)';
+                            e.currentTarget.style.boxShadow = '0 4px 15px rgba(0,0,0,0.1)';
+                        } else {
+                            e.currentTarget.style.transform = 'translateY(0)';
+                            e.currentTarget.style.boxShadow = '0 6px 20px rgba(242, 127, 14, 0.4)';
                         }
                     }}
                 >
@@ -404,27 +446,45 @@ export default function HeatmapView({ data }) {
                 position: 'absolute',
                 bottom: '20px',
                 left: '20px',
-                background: 'white',
-                padding: '15px',
-                borderRadius: '8px',
-                boxShadow: '0 2px 10px rgba(0,0,0,0.2)',
+                background: 'rgba(255, 255, 255, 0.95)',
+                backdropFilter: 'blur(10px)',
+                padding: '18px',
+                borderRadius: '16px',
+                boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
                 zIndex: 1000,
-                fontSize: '12px'
+                fontSize: '13px',
+                border: '1px solid rgba(255, 255, 255, 0.3)'
             }}>
-                <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>
+                <div style={{ 
+                    fontWeight: 'bold', 
+                    marginBottom: '12px',
+                    color: '#2c3e50',
+                    fontSize: '14px'
+                }}>
                     Fiyat Yoğunluğu
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <div style={{ 
-                        width: '80px', 
-                        height: '15px', 
+                        width: '100px', 
+                        height: '18px', 
                         background: 'linear-gradient(to right, #0000ff, #00ff00, #ffff00, #ff8800, #ff0000)',
-                        borderRadius: '3px'
+                        borderRadius: '9px',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
                     }}></div>
-                    <span style={{ fontSize: '11px' }}>Düşük → Yüksek</span>
+                    <span style={{ fontSize: '12px', color: '#666', fontWeight: '600' }}>
+                        Düşük → Yüksek
+                    </span>
                 </div>
-                <div style={{ marginTop: '8px', fontSize: '11px', color: '#666' }}>
-                    Toplam {data.length} ilan
+                <div style={{ 
+                    marginTop: '12px', 
+                    fontSize: '12px', 
+                    color: '#666',
+                    fontWeight: '600',
+                    padding: '8px 12px',
+                    background: 'rgba(242, 127, 14, 0.1)',
+                    borderRadius: '8px'
+                }}>
+                    📊 Toplam {data.length} ilan
                 </div>
             </div>
         </div>
