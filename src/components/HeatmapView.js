@@ -308,6 +308,9 @@ export default function HeatmapView({ data }) {
                     
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> b29b39f (Refactor HeatmapView to improve average price formatting and enhance map bounds)
                     // Fiyat formatını düzelt
                     const avgPriceValue = districtMap[district].avgPrice;
                     let priceText;
@@ -321,13 +324,17 @@ export default function HeatmapView({ data }) {
                         priceText = avgPriceValue.toFixed(0) + ' TL';
                     }
                     
+<<<<<<< HEAD
 =======
 >>>>>>> e4c037f (Enhance HeatmapView with district labels and improve heat layer settings)
+=======
+>>>>>>> b29b39f (Refactor HeatmapView to improve average price formatting and enhance map bounds)
                     // Etiket bilgisi ekle
                     labels.push({
                         name: district,
                         lat: coords.lat,
                         lng: coords.lng,
+<<<<<<< HEAD
 <<<<<<< HEAD
                         avgPrice: priceText,
                         count: districtMap[district].count
@@ -337,6 +344,9 @@ export default function HeatmapView({ data }) {
 >>>>>>> 79a703e (Add heatmap functionality using Leaflet and react-leaflet)
 =======
                         avgPrice: (districtMap[district].avgPrice / 1000).toFixed(0) + 'K TL',
+=======
+                        avgPrice: priceText,
+>>>>>>> b29b39f (Refactor HeatmapView to improve average price formatting and enhance map bounds)
                         count: districtMap[district].count
                     });
                     
@@ -398,6 +408,9 @@ export default function HeatmapView({ data }) {
                 center={istanbulCenter}
                 zoom={11}
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> b29b39f (Refactor HeatmapView to improve average price formatting and enhance map bounds)
                 minZoom={10}
                 maxZoom={14}
                 maxBounds={[
@@ -405,8 +418,11 @@ export default function HeatmapView({ data }) {
                     [41.45, 29.70]   // Kuzeydoğu köşesi
                 ]}
                 maxBoundsViscosity={1.0}
+<<<<<<< HEAD
 =======
 >>>>>>> 79a703e (Add heatmap functionality using Leaflet and react-leaflet)
+=======
+>>>>>>> b29b39f (Refactor HeatmapView to improve average price formatting and enhance map bounds)
                 style={{ height: '100%', width: '100%' }}
                 zoomControl={true}
             >
