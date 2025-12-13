@@ -296,14 +296,10 @@ export default function PropertyDetail({ property, onClose, onToggleFavorite, is
                             <div className="feature-icon">🏗️</div>
                             <div className="feature-info">
                                 <span className="feature-label">Bina Yaşı</span>
-                                <span className="feature-value">{property["Age of building"]} Yıl</span>
-                            </div>
-                        </div>
-                        <div className="detail-feature-card">
-                            <div className="feature-icon">📅</div>
-                            <div className="feature-info">
-                                <span className="feature-label">İlan Tarihi</span>
-                                <span className="feature-value">{new Date(property["Date"]).toLocaleDateString('tr-TR')}</span>
+                                <span className="feature-value">
+                                    {property["Building Age"] || property["Age of building"] || 'Belirtilmemiş'}
+                                    {(property["Building Age"] || property["Age of building"]) && ' Yıl'}
+                                </span>
                             </div>
                         </div>
                     </div>
@@ -314,7 +310,9 @@ export default function PropertyDetail({ property, onClose, onToggleFavorite, is
                         <p className="detail-description">
                             {property.District} bölgesinde, {property.Neighborhood} mahallesinde satılık {property["Number of rooms"]} daire.
                             {property["m² (Gross)"]} m² brüt alana sahip bu daire, {property["Floor location"]}. katta bulunmaktadır.
-                            Bina yaşı {property["Age of building"]} yıldır.
+                            {(property["Building Age"] || property["Age of building"]) && 
+                                ` Bina yaşı ${property["Building Age"] || property["Age of building"]} yıldır.`
+                            }
                         </p>
                     </div>
 

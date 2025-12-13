@@ -24,7 +24,8 @@ export default function Desktop({ viewMode, onToggleFavorite, isFavorite, onView
     const [secilenIlceId, setSecilenIlceId] = useState(""); // Seçili ilçe ID'si
     const [yukleniyor, setYukleniyor] = useState(false);    // Mahalleler yükleniyor mu?
 
-    const [aiMode, setAiMode] = useState(true);
+    // AI mode - başlangıçta filtreler görünsün (false)
+    const [aiMode, setAiMode] = useState(false);
 
     const [aiTyping, setAiTyping] = useState(false);
     
@@ -36,8 +37,8 @@ export default function Desktop({ viewMode, onToggleFavorite, isFavorite, onView
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 20;
 
-    // Sidebar toggle state
-    const [sidebarOpen, setSidebarOpen] = useState(true);
+    // Sidebar toggle state - başlangıçta kapalı
+    const [sidebarOpen, setSidebarOpen] = useState(false);
 
     const [messages, setMessages] = useState([
         { 
