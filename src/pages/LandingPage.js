@@ -312,6 +312,9 @@ export default function LandingPage({ onGetStarted }) {
           <p className="footer-text">
             Yapay zeka destekli emlak platformu
           </p>
+          <p className="footer-team" style={{ marginTop: '10px', fontWeight: 'bold', color: '#f27f0e' }}>
+            Takım: Ayaz yemişler
+          </p>
           {/*<div className="footer-links">
             <a href="#about">Hakkımızda</a>
             <span>•</span>
