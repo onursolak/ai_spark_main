@@ -19,9 +19,25 @@ function App() {
   useEffect(() => {
     const fetchMetadata = async () => {
       try {
+        // Ana metadata'yı yükle
         const data = await apiCall(API_ENDPOINTS.META);
         console.log('Metadata yüklendi:', data);
-        setMetadata(data);
+        
+        // Ortalama fiyat modeli metadata'sını da yükle
+        try {
+          const avgMeta = await apiCall(API_ENDPOINTS.AVERAGE_META);
+          console.log('Ortalama fiyat metadata yüklendi:', avgMeta);
+          
+          // İki metadata'yı birleştir
+          setMetadata({
+            ...data,
+            average: avgMeta
+          });
+        } catch (avgError) {
+          console.warn('Ortalama fiyat metadata yüklenemedi:', avgError);
+          // Sadece ana metadata'yı kullan
+          setMetadata(data);
+        }
       } catch (error) {
         console.error('Metadata yüklenemedi:', error);
       }

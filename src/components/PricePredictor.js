@@ -6,20 +6,8 @@ export default function PricePredictor({ metadata }) {
     const [formData, setFormData] = useState({
         district: '',
         neighborhood: '',
-        grossArea: '',
-        netArea: '',
         rooms: '3+1',
-        buildingAge: '5-10 between',
-        floorLocation: '',
-        numFloors: '',
-        heating: 'Central',
-        bathrooms: 2,
-        balcony: 'Yes',
-        furnished: 'No',
-        usingStatus: 'Empty',
-        loanAvailable: 'Yes',
-        fromWho: 'Owner',
-        swap: 'No'
+        grossArea: ''
     });
 
     const [prediction, setPrediction] = useState(null);
@@ -27,16 +15,134 @@ export default function PricePredictor({ metadata }) {
     const [error, setError] = useState(null);
     const [neighborhoods, setNeighborhoods] = useState([]);
 
+    // Debug: Metadata'yı console'a yazdır
+    useEffect(() => {
+        if (metadata) {
+            console.log('📊 PricePredictor - Metadata yapısı:', {
+                hasDistricts: !!metadata.districts,
+                hasNeighborhoods: !!metadata.neighborhoods,
+                hasAverage: !!metadata.average,
+                hasAverageDistricts: !!metadata.average?.districts,
+                hasAverageNeighborhoods: !!metadata.average?.neighborhoods,
+                metadata: metadata
+            });
+        }
+    }, [metadata]);
+
     // İlçe değiştiğinde mahalleleri güncelle
     useEffect(() => {
-        if (formData.district && metadata?.neighborhoods) {
-            const districtNeighborhoods = metadata.neighborhoods[formData.district] || [];
-            setNeighborhoods(districtNeighborhoods);
-            // İlçe değişince mahalle seçimini sıfırla
-            setFormData(prev => ({ ...prev, neighborhood: '' }));
-        } else {
-            setNeighborhoods([]);
-        }
+        const fetchNeighborhoods = async () => {
+            if (!formData.district) {
+                setNeighborhoods([]);
+                return;
+            }
+
+            // Önce metadata'dan dene
+            if (metadata) {
+                let districtNeighborhoods = [];
+                
+                if (metadata.average?.neighborhoods?.[formData.district]) {
+                    districtNeighborhoods = metadata.average.neighborhoods[formData.district];
+                } else if (metadata.neighborhoods?.[formData.district]) {
+                    districtNeighborhoods = metadata.neighborhoods[formData.district];
+                }
+                
+                console.log('Seçilen ilçe:', formData.district);
+                console.log('Bulunan mahalleler (metadata):', districtNeighborhoods);
+                console.log('Mahalleler tipi:', typeof districtNeighborhoods, Array.isArray(districtNeighborhoods));
+                
+                // Eğer object ise ve array değilse, values'u al
+                if (districtNeighborhoods && typeof districtNeighborhoods === 'object') {
+                    if (Array.isArray(districtNeighborhoods)) {
+                        // Array ise, her elemanın tipini kontrol et
+                        const processedNeighborhoods = districtNeighborhoods.map(item => {
+                            // Eğer item bir object ise, name property'sini al
+                            if (typeof item === 'object' && item !== null) {
+                                return item.name || item.neighborhood || item.Neighborhood || JSON.stringify(item);
+                            }
+                            // String ise direkt kullan
+                            return item;
+                        }).filter(Boolean);
+                        
+                        if (processedNeighborhoods.length > 0) {
+                            console.log('Mahalleler array olarak kullanılıyor:', processedNeighborhoods);
+                            setNeighborhoods(processedNeighborhoods);
+                            setFormData(prev => ({ ...prev, neighborhood: '' }));
+                            return;
+                        }
+                    } else {
+                        // Object ise keys'i al (mahalle isimleri key olarak saklanıyor)
+                        const keys = Object.keys(districtNeighborhoods);
+                        if (keys.length > 0) {
+                            console.log('Mahalleler object keys olarak kullanılıyor:', keys);
+                            setNeighborhoods(keys);
+                            setFormData(prev => ({ ...prev, neighborhood: '' }));
+                            return;
+                        }
+                    }
+                }
+            }
+
+            // Metadata'da yoksa API'den çek
+            try {
+                console.log('API\'den ilçe detayları çekiliyor:', formData.district);
+                const districtData = await apiCall(API_ENDPOINTS.AVERAGE_DISTRICT(formData.district));
+                console.log('İlçe detayları RAW:', districtData);
+                console.log('İlçe detayları TIPI:', typeof districtData, Array.isArray(districtData));
+                
+                let neighborhoodList = [];
+                
+                // API'den gelen mahalle listesini çıkar
+                if (districtData && districtData.neighborhoods) {
+                    // Eğer neighborhoods bir object ise, key'leri al
+                    if (typeof districtData.neighborhoods === 'object' && !Array.isArray(districtData.neighborhoods)) {
+                        neighborhoodList = Object.keys(districtData.neighborhoods);
+                        console.log('Mahalleler (object keys):', neighborhoodList);
+                    } else if (Array.isArray(districtData.neighborhoods)) {
+                        // Array ise, her elemanın tipini kontrol et
+                        neighborhoodList = districtData.neighborhoods.map(item => {
+                            if (typeof item === 'object' && item !== null) {
+                                return item.name || item.neighborhood || item.Neighborhood || item.mahalle;
+                            }
+                            return item;
+                        }).filter(Boolean);
+                        console.log('Mahalleler (array processed):', neighborhoodList);
+                    }
+                } else if (districtData && Array.isArray(districtData)) {
+                    // Eğer array olarak gelirse, mahalle isimlerini çıkar
+                    neighborhoodList = [...new Set(districtData.map(item => {
+                        // Farklı property isimlerini dene
+                        if (typeof item === 'object' && item !== null) {
+                            return item.name || item.neighborhood || item.Neighborhood || item.mahalle;
+                        }
+                        return item;
+                    }).filter(Boolean))];
+                    console.log('Mahalleler (array mapping):', neighborhoodList);
+                } else if (districtData && typeof districtData === 'object') {
+                    // Eğer başka bir yapıda ise, tüm key'leri listele
+                    console.log('District Data Keys:', Object.keys(districtData));
+                    // districts, rooms gibi key'leri kontrol et
+                    if (districtData.data && Array.isArray(districtData.data)) {
+                        neighborhoodList = [...new Set(districtData.data.map(item => {
+                            if (typeof item === 'object' && item !== null) {
+                                return item.name || item.neighborhood || item.Neighborhood || item.mahalle;
+                            }
+                            return item;
+                        }).filter(Boolean))];
+                        console.log('Mahalleler (data array):', neighborhoodList);
+                    }
+                }
+                
+                console.log('Final mahalle listesi:', neighborhoodList);
+                setNeighborhoods(neighborhoodList);
+                setFormData(prev => ({ ...prev, neighborhood: '' }));
+            } catch (error) {
+                console.error('Mahalleler yüklenemedi:', error);
+                setNeighborhoods([]);
+            }
+        };
+
+        fetchNeighborhoods();
     }, [formData.district, metadata]);
 
     const handleChange = (e) => {
@@ -54,37 +160,25 @@ export default function PricePredictor({ metadata }) {
         setPrediction(null);
 
         try {
-            // API'nin beklediği formatta veri hazırla
+            // Ortalama fiyat modeli için gerekli parametreler
             const requestData = {
-                "District": formData.district,
-                "Neighborhood": formData.neighborhood,
-                "m² (Gross)": parseInt(formData.grossArea),
-                "m² (Net)": parseInt(formData.netArea),
-                "Number of rooms": formData.rooms,
-                "Building Age": formData.buildingAge,
-                "Floor location": formData.floorLocation,
-                "Number of floors": parseInt(formData.numFloors),
-                "Heating": formData.heating,
-                "Number of bathrooms": parseInt(formData.bathrooms),
-                "Balcony": formData.balcony,
-                "Furnished": formData.furnished,
-                "Using status": formData.usingStatus,
-                "Available for Loan": formData.loanAvailable,
-                "From who": formData.fromWho,
-                "Swap": formData.swap
+                district: formData.district,
+                neighborhood: formData.neighborhood || undefined, // Opsiyonel
+                rooms: formData.rooms,
+                area: parseInt(formData.grossArea) || undefined // Opsiyonel ama tahmin için önemli
             };
 
-            console.log('Tahmin isteği gönderiliyor:', requestData);
+            console.log('Ortalama fiyat tahmini isteği gönderiliyor:', requestData);
 
-            const result = await apiCall(API_ENDPOINTS.PREDICT, {
+            const result = await apiCall(API_ENDPOINTS.AVERAGE, {
                 method: 'POST',
                 body: JSON.stringify(requestData)
             });
 
             console.log('Tahmin sonucu:', result);
             
-            // Backend'den gelen response'u kontrol et
-            setPrediction(result.predicted_price || result.prediction || result);
+            // Backend'den gelen response'u kaydet (tüm bilgileri)
+            setPrediction(result);
             
         } catch (err) {
             console.error('Tahmin hatası:', err);
@@ -113,7 +207,7 @@ export default function PricePredictor({ metadata }) {
                             required
                         >
                             <option value="">Seçiniz</option>
-                            {metadata?.districts?.map((district, idx) => (
+                            {(metadata?.average?.districts || metadata?.districts || []).map((district, idx) => (
                                 <option key={idx} value={district}>{district}</option>
                             ))}
                         </select>
@@ -121,47 +215,28 @@ export default function PricePredictor({ metadata }) {
 
                     {/* Mahalle */}
                     <div className="form-group">
-                        <label>Mahalle *</label>
+                        <label>Mahalle (Opsiyonel)</label>
                         <select 
                             name="neighborhood" 
                             value={formData.neighborhood} 
                             onChange={handleChange}
-                            required
                             disabled={!formData.district}
                         >
                             <option value="">
-                                {!formData.district ? 'Önce İlçe Seçin' : 'Seçiniz'}
+                                {!formData.district ? 'Önce İlçe Seçin' : 'Tüm Mahalleler'}
                             </option>
-                            {neighborhoods.map((neighborhood, idx) => (
-                                <option key={idx} value={neighborhood}>{neighborhood}</option>
-                            ))}
+                            {neighborhoods.map((neighborhood, idx) => {
+                                // Güvenlik: neighborhood'un string olduğundan emin ol
+                                const neighborhoodName = typeof neighborhood === 'string' 
+                                    ? neighborhood 
+                                    : (neighborhood?.name || neighborhood?.neighborhood || String(neighborhood));
+                                return (
+                                    <option key={idx} value={neighborhoodName}>
+                                        {neighborhoodName}
+                                    </option>
+                                );
+                            })}
                         </select>
-                    </div>
-
-                    {/* Brüt Metrekare */}
-                    <div className="form-group">
-                        <label>Brüt Metrekare *</label>
-                        <input 
-                            type="number" 
-                            name="grossArea" 
-                            value={formData.grossArea}
-                            onChange={handleChange}
-                            placeholder="Örn: 120"
-                            required
-                        />
-                    </div>
-
-                    {/* Net Metrekare */}
-                    <div className="form-group">
-                        <label>Net Metrekare *</label>
-                        <input 
-                            type="number" 
-                            name="netArea" 
-                            value={formData.netArea}
-                            onChange={handleChange}
-                            placeholder="Örn: 100"
-                            required
-                        />
                     </div>
 
                     {/* Oda Sayısı */}
@@ -181,152 +256,19 @@ export default function PricePredictor({ metadata }) {
                         </select>
                     </div>
 
-                    {/* Bina Yaşı */}
+                    {/* Brüt Metrekare */}
                     <div className="form-group">
-                        <label>Bina Yaşı *</label>
-                        <select 
-                            name="buildingAge" 
-                            value={formData.buildingAge}
-                            onChange={handleChange}
-                            required
-                        >
-                            <option value="0-5 between">0-5 arası</option>
-                            <option value="5-10 between">5-10 arası</option>
-                            <option value="10-15 between">10-15 arası</option>
-                            <option value="15-20 between">15-20 arası</option>
-                            <option value="20+ older">20+ yaş</option>
-                        </select>
-                    </div>
-
-                    {/* Bulunduğu Kat */}
-                    <div className="form-group">
-                        <label>Bulunduğu Kat *</label>
-                        <input 
-                            type="text" 
-                            name="floorLocation" 
-                            value={formData.floorLocation}
-                            onChange={handleChange}
-                            placeholder="Örn: 3"
-                            required
-                        />
-                    </div>
-
-                    {/* Kat Sayısı */}
-                    <div className="form-group">
-                        <label>Toplam Kat Sayısı *</label>
+                        <label>Brüt Metrekare (Opsiyonel)</label>
                         <input 
                             type="number" 
-                            name="numFloors" 
-                            value={formData.numFloors}
+                            name="grossArea" 
+                            value={formData.grossArea}
                             onChange={handleChange}
-                            placeholder="Örn: 5"
-                            required
+                            placeholder="Örn: 120"
                         />
-                    </div>
-
-                    {/* Isıtma */}
-                    <div className="form-group">
-                        <label>Isıtma</label>
-                        <select 
-                            name="heating" 
-                            value={formData.heating}
-                            onChange={handleChange}
-                        >
-                            <option value="Central">Merkezi</option>
-                            <option value="Individual">Bireysel</option>
-                            <option value="Natural Gas">Doğalgaz</option>
-                        </select>
-                    </div>
-
-                    {/* Banyo Sayısı */}
-                    <div className="form-group">
-                        <label>Banyo Sayısı</label>
-                        <input 
-                            type="number" 
-                            name="bathrooms" 
-                            value={formData.bathrooms}
-                            onChange={handleChange}
-                            min="1"
-                        />
-                    </div>
-
-                    {/* Balkon */}
-                    <div className="form-group">
-                        <label>Balkon</label>
-                        <select 
-                            name="balcony" 
-                            value={formData.balcony}
-                            onChange={handleChange}
-                        >
-                            <option value="Yes">Var</option>
-                            <option value="No">Yok</option>
-                        </select>
-                    </div>
-
-                    {/* Eşyalı */}
-                    <div className="form-group">
-                        <label>Eşyalı</label>
-                        <select 
-                            name="furnished" 
-                            value={formData.furnished}
-                            onChange={handleChange}
-                        >
-                            <option value="Yes">Evet</option>
-                            <option value="No">Hayır</option>
-                        </select>
-                    </div>
-
-                    {/* Kullanım Durumu */}
-                    <div className="form-group">
-                        <label>Kullanım Durumu</label>
-                        <select 
-                            name="usingStatus" 
-                            value={formData.usingStatus}
-                            onChange={handleChange}
-                        >
-                            <option value="Empty">Boş</option>
-                            <option value="Tenant">Kiracılı</option>
-                            <option value="Owner">Mالکte</option>
-                        </select>
-                    </div>
-
-                    {/* Krediye Uygun */}
-                    <div className="form-group">
-                        <label>Krediye Uygun</label>
-                        <select 
-                            name="loanAvailable" 
-                            value={formData.loanAvailable}
-                            onChange={handleChange}
-                        >
-                            <option value="Yes">Evet</option>
-                            <option value="No">Hayır</option>
-                        </select>
-                    </div>
-
-                    {/* Kimden */}
-                    <div className="form-group">
-                        <label>İlan Sahibi</label>
-                        <select 
-                            name="fromWho" 
-                            value={formData.fromWho}
-                            onChange={handleChange}
-                        >
-                            <option value="Owner">Mal Sahibi</option>
-                            <option value="Agent">Emlakçı</option>
-                        </select>
-                    </div>
-
-                    {/* Takas */}
-                    <div className="form-group">
-                        <label>Takas</label>
-                        <select 
-                            name="swap" 
-                            value={formData.swap}
-                            onChange={handleChange}
-                        >
-                            <option value="Yes">Evet</option>
-                            <option value="No">Hayır</option>
-                        </select>
+                        <small style={{ color: '#64748b', fontSize: '0.85rem' }}>
+                            Metrekare girdiğinizde daha hassas tahmin alırsınız
+                        </small>
                     </div>
                 </div>
 
@@ -355,13 +297,51 @@ export default function PricePredictor({ metadata }) {
                     <div className="result-content">
                         <h3>Tahmini Fiyat</h3>
                         <p className="price">
-                            {typeof prediction === 'number' 
-                                ? prediction.toLocaleString('tr-TR') + ' ₺'
-                                : prediction
+                            {prediction.estimated_price 
+                                ? prediction.estimated_price.toLocaleString('tr-TR') + ' ₺'
+                                : prediction.average_price_formatted || prediction.average_price?.toLocaleString('tr-TR') + ' ₺'
                             }
                         </p>
+                        
+                        {/* Detaylı bilgiler */}
+                        <div className="prediction-details">
+                            {prediction.average_price && (
+                                <div className="detail-item">
+                                    <span className="detail-label">Ortalama Fiyat:</span>
+                                    <span className="detail-value">{prediction.average_price.toLocaleString('tr-TR')} ₺</span>
+                                </div>
+                            )}
+                            {prediction.median_price && (
+                                <div className="detail-item">
+                                    <span className="detail-label">Medyan Fiyat:</span>
+                                    <span className="detail-value">{prediction.median_price.toLocaleString('tr-TR')} ₺</span>
+                                </div>
+                            )}
+                            {prediction.price_per_m2 && (
+                                <div className="detail-item">
+                                    <span className="detail-label">m² Fiyat:</span>
+                                    <span className="detail-value">{prediction.price_per_m2.toLocaleString('tr-TR')} ₺/m²</span>
+                                </div>
+                            )}
+                            {prediction.sample_count !== undefined && (
+                                <div className="detail-item">
+                                    <span className="detail-label">Örnek Sayısı:</span>
+                                    <span className="detail-value">{prediction.sample_count}</span>
+                                </div>
+                            )}
+                            {prediction.confidence && (
+                                <div className="detail-item">
+                                    <span className="detail-label">Güven Seviyesi:</span>
+                                    <span className={`confidence-badge ${prediction.confidence}`}>
+                                        {prediction.confidence === 'high' ? 'Yüksek' : 
+                                         prediction.confidence === 'medium' ? 'Orta' : 'Düşük'}
+                                    </span>
+                                </div>
+                            )}
+                        </div>
+                        
                         <p className="result-note">
-                            Bu tahmin yapay zeka modeli tarafından oluşturulmuştur.
+                            Bu tahmin {prediction.sample_count} benzer satış verisine dayanmaktadır.
                         </p>
                     </div>
                 </div>
