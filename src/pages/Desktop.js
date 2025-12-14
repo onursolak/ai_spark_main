@@ -39,7 +39,7 @@ export default function Desktop({ viewMode, onToggleFavorite, isFavorite, onView
     const itemsPerPage = 20;
 
     // Sidebar toggle state - başlangıçta kapalı
-    const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [sidebarOpen, setSidebarOpen] = useState(true);
 
     const [messages, setMessages] = useState([
         { 

@@ -739,6 +739,16 @@
   margin-bottom: 24px;
 }
 
+.cta-badge-2 {
+  display: inline-block;
+  padding: 10px 24px;
+  border-radius: 50px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #fbbf24;
+  margin-bottom: 24px;
+}
+
 .cta-title {
   font-size: 3.5rem;
   font-weight: 900;

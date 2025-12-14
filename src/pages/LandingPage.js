@@ -28,8 +28,8 @@ export default function LandingPage({ onGetStarted }) {
 
   const stats = [
     { value: '10,000+', label: 'Aktif İlan', icon: '🏠' },
-    { value: '50+', label: 'İstanbul İlçesi', icon: '📍' },
-    { value: '%98', label: 'Doğruluk Oranı', icon: '🎯' }
+    { value: '39', label: 'İstanbul İlçesi', icon: '📍' },
+    { value: '%92~', label: 'Doğruluk Oranı', icon: '🎯' }
   ];
 
   const features = [
@@ -283,13 +283,15 @@ export default function LandingPage({ onGetStarted }) {
           <p className="cta-description">
             İstanbul'un en gelişmiş emlak arama platformunu şimdi deneyin
           </p>
-          <button className="btn-primary-large" onClick={onGetStarted}>
-            <span>Ücretsiz Başla</span>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <line x1="5" y1="12" x2="19" y2="12"></line>
-              <polyline points="12 5 19 12 12 19"></polyline>
-            </svg>
-          </button>
+          <div className="cta-badge-2">
+            <button className="btn-primary-large" onClick={onGetStarted}>
+              <span>Ücretsiz Başla</span>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+                <polyline points="12 5 19 12 12 19"></polyline>
+              </svg>
+            </button>
+          </div>
         </div>
         <div className="cta-particles">
           <div className="particle"></div>
@@ -310,15 +312,15 @@ export default function LandingPage({ onGetStarted }) {
           <p className="footer-text">
             Yapay zeka destekli emlak platformu
           </p>
-          <div className="footer-links">
+          {/*<div className="footer-links">
             <a href="#about">Hakkımızda</a>
             <span>•</span>
             <a href="#privacy">Gizlilik</a>
             <span>•</span>
             <a href="#contact">İletişim</a>
-          </div>
+          </div>*/}
           <div className="footer-copyright">
-            © 2024 AI Spark. Tüm hakları saklıdır.
+            © 2025 AI Spark. Tüm hakları saklıdır.
           </div>
         </div>
       </footer>
