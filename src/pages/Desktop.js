@@ -5,6 +5,8 @@ import jsonDatas from '../data/data.json';
 import HeatmapView from '../components/HeatmapView';
 import { API_ENDPOINTS, apiCall } from '../config/api';
 import { getPropertyMainImage } from '../utils/imageHelper';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 export default function Desktop({ viewMode, onToggleFavorite, isFavorite, onViewDetail, metadata }) {
     // --- STATE TANIMLARI ---
@@ -39,7 +41,7 @@ export default function Desktop({ viewMode, onToggleFavorite, isFavorite, onView
     const itemsPerPage = 20;
 
     // Sidebar toggle state - başlangıçta kapalı
-    const [sidebarOpen, setSidebarOpen] = useState(true);
+    const [sidebarOpen, setSidebarOpen] = useState(false);
 
     const [messages, setMessages] = useState([
         { 
@@ -417,13 +419,6 @@ export default function Desktop({ viewMode, onToggleFavorite, isFavorite, onView
             <div className='filter-sidebar-header' style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px'}}>
                 <h3>{aiMode ? "🤖 Chatbot" : "🔍 Filtrele"}</h3>
                 <div style={{display: 'flex', gap: '10px', alignItems: 'center'}}>
-                    <h4 style={{cursor: 'pointer', margin: 0}}
-                        onClick={()=>{
-                            setAiMode(!aiMode)
-                        }}
-                    >
-                        {aiMode ? "⚙️ " : "💬 "}Modu değiştir
-                    </h4>
                     <button 
                         className="close-sidebar-btn"
                         onClick={() => setSidebarOpen(false)}
@@ -443,7 +438,7 @@ export default function Desktop({ viewMode, onToggleFavorite, isFavorite, onView
                             <div className="chat-messages">
                                 {messages.map((msg, index) => (
                                     <div key={index} className={`message-bubble ${msg.sender === 'user' ? 'user-msg' : 'ai-msg'}`}>
-                                        {msg.text}
+                                        <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.text}</ReactMarkdown>
                                     </div>
                                 ))}
 
@@ -605,19 +600,34 @@ export default function Desktop({ viewMode, onToggleFavorite, isFavorite, onView
                     <div className="stats-filter-container">
                         {/* Sidebar kapalıyken Filtreler Butonu */}
                         {!sidebarOpen && (
-                            <div className="stat-card filter-button-card">
+                            <div className="stat-card filter-button-card" style={{ padding: '12px', gap: '12px', display: 'flex', flexDirection: 'row', alignItems: 'stretch' }}>
                                 <button 
                                     className="inline-filter-btn"
-                                    onClick={() => setSidebarOpen(true)}
+                                    onClick={() => { setSidebarOpen(true); setAiMode(false); }}
                                     title="Filtreleri Göster"
+                                    style={{ flex: 1, flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: '8px', padding: '8px', borderRadius: '12px', background: 'rgba(242, 127, 14, 0.05)' }}
                                 >
-                                    <div className="stat-card-icon" style={{background: 'linear-gradient(135deg, #f27f0e 0%, #d96d0b 100%)'}}>
-                                        <span style={{fontSize: '1.5rem'}}>☰</span>
+                                    <div className="stat-card-icon" style={{ width: '42px', height: '42px', background: 'linear-gradient(135deg, #f27f0e 0%, #d96d0b 100%)', borderRadius: '12px' }}>
+                                        <span style={{fontSize: '1.2rem'}}>☰</span>
                                     </div>
-                                    <div className="stat-card-content">
-                                        <span className="stat-card-label">Filtrele</span>
-                                        <span className="stat-card-value" style={{fontSize: '1.2rem'}}>Seçenekler</span>
-                                        <span className="stat-card-change neutral">Tıklayın</span>
+                                    <div className="stat-card-content" style={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px'}}>
+                                        <span className="stat-card-label" style={{fontSize: '0.85rem', fontWeight: '700', color: '#333'}}>Filtrele</span>
+                                        <span className="stat-card-value" style={{fontSize: '0.75rem', color: '#666'}}>Seçenekler</span>
+                                    </div>
+                                </button>
+
+                                <button 
+                                    className="inline-filter-btn"
+                                    onClick={() => { setSidebarOpen(true); setAiMode(true); }}
+                                    title="AI Asistan"
+                                    style={{ flex: 1, flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: '8px', padding: '8px', borderRadius: '12px', background: 'rgba(139, 92, 246, 0.05)' }}
+                                >
+                                    <div className="stat-card-icon" style={{ width: '42px', height: '42px', background: 'linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%)', borderRadius: '12px' }}>
+                                        <span style={{fontSize: '1.2rem'}}>🤖</span>
+                                    </div>
+                                    <div className="stat-card-content" style={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px'}}>
+                                        <span className="stat-card-label" style={{fontSize: '0.85rem', fontWeight: '700', color: '#333'}}>AI Asistan</span>
+                                        <span className="stat-card-value" style={{fontSize: '0.75rem', color: '#666'}}>Sohbet</span>
                                     </div>
                                 </button>
                             </div>
