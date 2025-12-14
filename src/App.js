@@ -6,9 +6,11 @@ import Favorites from "./pages/Favorites";
 import PropertyDetail from "./pages/PropertyDetail";
 import PricePredictor from "./components/PricePredictor";
 import ImageDebugger from "./components/ImageDebugger";
+import LandingPage from "./pages/LandingPage";
 import { API_ENDPOINTS, apiCall } from './config/api';
 
 function App() {
+  const [showLanding, setShowLanding] = useState(true);
   const [currentPage, setCurrentPage] = useState('home');
   const [currentView, setCurrentView] = useState('list');
   const [favorites, setFavorites] = useState([]);
@@ -95,6 +97,16 @@ function App() {
   const closeDetail = () => {
     setSelectedProperty(null);
   };
+
+  // Landing page'den ana uygulamaya geçiş
+  const handleGetStarted = () => {
+    setShowLanding(false);
+  };
+
+  // Eğer landing page gösteriliyorsa
+  if (showLanding) {
+    return <LandingPage onGetStarted={handleGetStarted} />;
+  }
 
   return (
     <div className="App">
