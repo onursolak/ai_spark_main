@@ -56,7 +56,6 @@ export default function Desktop({ viewMode, onToggleFavorite, isFavorite, onView
                 // Eğer üst component'ten metadata gelmediyse, burada çek
                 if (!metadata) {
                     const data = await apiCall(API_ENDPOINTS.META);
-                    console.log('Metadata alındı:', data);
                     
                     // Metadata'dan ilçeleri al
                     if (data.districts) {
@@ -96,66 +95,54 @@ export default function Desktop({ viewMode, onToggleFavorite, isFavorite, onView
     }, [metadata]);
 
     // 3. Kullanıcı bir İLÇE seçtiğinde çalışır
-    const handleIlceChange = async (e) => {
+    const handleIlceChange = (e) => {
         const ilceId = e.target.value;
-        setSecilenIlceId(ilceId); // Seçilen ID'yi state'e at
-        setMahalleler([]);        // Eski mahalleleri temizle (Önemli!)
+        setSecilenIlceId(ilceId);
+        setMahalleler([]); 
+        setSecilenMahalle(""); // İlçe değişince seçili mahalleyi de sıfırla
 
-        // Eğer "Seçiniz" değil de gerçek bir ilçe seçildiyse:
         if (ilceId) {
-            setYukleniyor(true); // Yükleniyor yazısını göster
+            setYukleniyor(true);
 
-            try {
-                // Seçilen ilçenin adını bul
-                const selectedDistrictName = ilceler.find(i => i.id === ilceId)?.name;
+            // 1. Seçilen ilçenin İSMİNİ bul
+            const selectedDistrictObj = ilceler.find(i => i.id == ilceId);
+            const selectedDistrictName = selectedDistrictObj?.name;
+
+
+            if (selectedDistrictName) {
                 
-                // Metadata'dan o ilçeye ait mahalleleri bul
-                if (metadata && metadata.neighborhoods && selectedDistrictName) {
-                    const districtNeighborhoods = metadata.neighborhoods[selectedDistrictName];
-                    
-                    if (districtNeighborhoods && Array.isArray(districtNeighborhoods)) {
-                        // Mahalle isimlerini uygun formata çevir
-                        const formattedNeighborhoods = districtNeighborhoods.map((name, index) => ({
-                            id: `${ilceId}-${index}`,
-                            name: name
-                        }));
-                        setMahalleler(formattedNeighborhoods);
-                    }
-                } else {
-                    // Metadata yoksa backend'den al
-                    const metadataResponse = await apiCall(API_ENDPOINTS.META);
-                    
-                    if (metadataResponse.neighborhoods && selectedDistrictName) {
-                        const districtNeighborhoods = metadataResponse.neighborhoods[selectedDistrictName];
-                        
-                        if (districtNeighborhoods && Array.isArray(districtNeighborhoods)) {
-                            const formattedNeighborhoods = districtNeighborhoods.map((name, index) => ({
-                                id: `${ilceId}-${index}`,
-                                name: name
-                            }));
-                            setMahalleler(formattedNeighborhoods);
-                        }
-                    }
-                }
+                // 2. EN SAĞLAM YÖNTEM: Elindeki İlan Verisinden Mahalleleri Çıkar
+                // Bu sayede metadata bozuk olsa bile ilanlardaki gerçek mahalleler gelir.
+                
+                // a) Sadece o ilçeye ait ilanları filtrele
+                const districtAds = jsonDatas.filter(ilan => 
+                    ilan["District"] === selectedDistrictName
+                );
+
+                // b) Bu ilanlardaki mahalle isimlerini al
+                const allNeighborhoods = districtAds.map(ilan => ilan["Neighborhood"]);
+
+                // c) Tekrar eden isimleri temizle (Unique yap)
+                const uniqueNeighborhoods = [...new Set(allNeighborhoods)];
+
+                // d) Alfabetik sırala
+                uniqueNeighborhoods.sort((a, b) => a.localeCompare(b, 'tr'));
+
+
+                // e) Selectbox formatına çevir
+                const formattedNeighborhoods = uniqueNeighborhoods.map((name, index) => ({
+                    id: `${ilceId}-${index}`,
+                    name: name
+                }));
+
+                setMahalleler(formattedNeighborhoods);
                 setYukleniyor(false);
-            } catch (error) {
-                console.error("Mahalleler backend'den alınamadı, fallback API kullanılıyor:", error);
-                // Fallback: Eski API'yi kullan
-                fetch(`https://turkiyeapi.dev/api/v1/districts/${ilceId}`)
-                    .then(res => res.json())
-                    .then(response => {
-                        setYukleniyor(false);
-                        if (response.data && response.data.neighborhoods) {
-                            setMahalleler(response.data.neighborhoods);
-                        }
-                    })
-                    .catch(err => {
-                        setYukleniyor(false);
-                        console.error("Mahalleler çekilemedi:", err);
-                    });
+
+            } else {
+                setYukleniyor(false);
             }
         }
-    }
+    };
     
     // Otomatik fiyat tahmini - tüm görünen ilanlar için
     useEffect(() => {
@@ -163,7 +150,6 @@ export default function Desktop({ viewMode, onToggleFavorite, isFavorite, onView
             if (data.length === 0 || autoPredicting) return;
             
             setAutoPredicting(true);
-            console.log('🤖 Otomatik tahmin başlatılıyor...', data.length, 'ilan');
             
             // Sayfalamadan sonraki ilanları al
             const startIndex = (currentPage - 1) * itemsPerPage;
@@ -190,7 +176,6 @@ export default function Desktop({ viewMode, onToggleFavorite, isFavorite, onView
             }
             
             setAutoPredicting(false);
-            console.log('✅ Otomatik tahmin tamamlandı');
         };
         
         // Sayfa veya data değiştiğinde otomatik tahmin yap
@@ -282,7 +267,6 @@ export default function Desktop({ viewMode, onToggleFavorite, isFavorite, onView
             const requestData = convertToAPIFormat(ilan);
 
             if (!silent) {
-                console.log('🔮 Fiyat tahmini isteği gönderiliyor:', requestData);
             }
 
             const result = await apiCall(API_ENDPOINTS.PREDICT, {
@@ -368,6 +352,49 @@ export default function Desktop({ viewMode, onToggleFavorite, isFavorite, onView
         setCurrentPage(pageNumber);
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
+
+    const handleSendMessage = async () => {
+        // Boşluk kontrolü
+        if (!input.trim()) return;
+
+        try {
+            setAiTyping(true);
+            // Kullanıcı mesajını ekle
+            setMessages(prev => [
+                ...prev, 
+                { sender: 'user', text: input }
+            ]);
+            
+            const userInput = input;
+            setInput(""); // Inputu hemen temizle
+
+            // Backend API isteği
+            const result = await apiCall(API_ENDPOINTS.ASK, {
+                method: 'POST',
+                body: JSON.stringify({
+                    prompt: userInput
+                })
+            });
+
+            setAiTyping(false);
+            
+            // Backend response kontrolü
+            const aiResponse = result.response || result.answer || result.data || 'Yanıt alınamadı.';
+            
+            setMessages(prev => [
+                ...prev, 
+                { sender: 'ai', text: aiResponse }
+            ]);
+            
+        } catch (e) {
+            setAiTyping(false);
+            console.error("AI yanıt hatası:", e);
+            setMessages(prev => [
+                ...prev, 
+                { sender: 'ai', text: 'Üzgünüm, bir hata oluştu. Lütfen tekrar deneyin.' }
+            ]);
+        }
+    };
     
   return (
     <div className="desktop-wrapper">
@@ -412,77 +439,47 @@ export default function Desktop({ viewMode, onToggleFavorite, isFavorite, onView
                 (
                     <>
                         <div className="ai-chat-container">
-                        {/* Mesaj Listesi Alanı */}
-                        <div className="chat-messages">
-                            {messages.map((msg, index) => (
-                                <div key={index} className={`message-bubble ${msg.sender === 'user' ? 'user-msg' : 'ai-msg'}`}>
-                                    {msg.text}
-                                </div>
-                            ))}
-
-                            {aiTyping &&
-                                <div className={`message-bubble ${'ai-msg'}`}>
-                                    <div style={{ display: 'flex', gap: '4px', padding: '5px 0' }}>
-                                        <span className="typing-dot"></span>
-                                        <span className="typing-dot" style={{ animationDelay: '0.2s' }}></span>
-                                        <span className="typing-dot" style={{ animationDelay: '0.4s' }}></span>
+                            {/* Mesaj Listesi Alanı */}
+                            <div className="chat-messages">
+                                {messages.map((msg, index) => (
+                                    <div key={index} className={`message-bubble ${msg.sender === 'user' ? 'user-msg' : 'ai-msg'}`}>
+                                        {msg.text}
                                     </div>
-                                </div>
-                            }
-                        </div>
+                                ))}
 
-                            {/* Mesaj Yazma Alanı */}
+                                {aiTyping &&
+                                    <div className={`message-bubble ${'ai-msg'}`}>
+                                        <div style={{ display: 'flex', gap: '4px', padding: '5px 0' }}>
+                                            <span className="typing-dot"></span>
+                                            <span className="typing-dot" style={{ animationDelay: '0.2s' }}></span>
+                                            <span className="typing-dot" style={{ animationDelay: '0.4s' }}></span>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+
                             <div className="chat-input-area">
                                 <textarea 
                                     placeholder="Örn: Kadıköy'de 3+1 deniz manzaralı..." 
                                     value={input}
                                     onChange={(e) => setInput(e.target.value)}
+                                    // Enter tuşu kontrolü buraya ekleniyor:
+                                    onKeyDown={(e) => {
+                                        // Eğer Enter'a basıldıysa VE Shift'e basılmıyorsa (Shift+Enter alt satır demek)
+                                        if (e.key === 'Enter' && !e.shiftKey) {
+                                            e.preventDefault(); // Varsayılan alt satıra geçme işlemini durdur
+                                            handleSendMessage(); // Mesajı gönder
+                                        }
+                                    }}
                                     rows="2"
                                 />
-                            <button 
-                                className="send-btn"
-                                onClick={async () => {
-                                        try {
-                                            if (input.trim() !== '') {
-                                                setAiTyping(true);
-                                                setMessages(prev => [
-                                                    ...prev, 
-                                                    { sender: 'user', text: input }
-                                                ]);
-                                                const userInput = input;
-                                                setInput("");
-
-                                                // Yeni backend API'yi kullan
-                                                const result = await apiCall(API_ENDPOINTS.ASK, {
-                                                    method: 'POST',
-                                                    body: JSON.stringify({
-                                                        prompt: userInput
-                                                    })
-                                                });
-
-                                                setAiTyping(false);
-                                                
-                                                // Backend response'unu kontrol et
-                                                const aiResponse = result.response || result.answer || result.data || 'Yanıt alınamadı.';
-                                                
-                                                setMessages(prev => [
-                                                    ...prev, 
-                                                    { sender: 'ai', text: aiResponse }
-                                                ]);
-                                            }
-                                            
-                                        } catch (e) {
-                                            setAiTyping(false);
-                                            console.error("AI yanıt hatası:", e);
-                                            setMessages(prev => [
-                                                ...prev, 
-                                                { sender: 'ai', text: 'Üzgünüm, bir hata oluştu. Lütfen tekrar deneyin.' }
-                                            ]);
-                                        }
-                                }}  
-                            >
-                                ➤
-                            </button>
+                                
+                                <button 
+                                    className="send-btn"
+                                    onClick={handleSendMessage} // Artık sadece fonksiyonu çağırıyoruz
+                                >
+                                    ➤
+                                </button>
                             </div>
                         </div>
                     </>
@@ -531,9 +528,12 @@ export default function Desktop({ viewMode, onToggleFavorite, isFavorite, onView
                                 onChange={(e) => setSecilenOda(e.target.value)}
                             >
                                 <option value="">Seçiniz</option> {/* Boş seçenek eklemek iyidir */}
-                                <option value="1+1">1+1</option>
-                                <option value="2+1">2+1</option>
-                                <option value="3+1">3+1</option>
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                                <option value="5">5</option>
+                                <option value="6">6</option>
                             </select>
                         </div>
 
@@ -562,31 +562,24 @@ export default function Desktop({ viewMode, onToggleFavorite, isFavorite, onView
                         <button className='search-btn'
                             onClick={()=> {
 
-                                console.log(ilceler?.find(i=> i.id === secilenIlceId)?.name)
-                                console.log(secilenMahalle)
-                                console.log(secilenOda)
-                                console.log(minMetrekare)
-                                console.log(secilenKat)
-
-
-                                const secilenIlceIsmi = ilceler?.find(i => i.id === secilenIlceId)?.name;
+                                const secilenIlceIsmi = ilceler?.find(i => i.id == secilenIlceId)?.name;
 
                                 const sonuc = jsonDatas.filter(i => {
                                     // 1. İlçe Kontrolü (Seçilmediyse VEYA Eşleşiyorsa)
-                                    const ilceUyuyor = !secilenIlceId || i["District"] === secilenIlceIsmi;
+                                    const ilceUyuyor = !secilenIlceId || i["District"] == secilenIlceIsmi;
 
                                     // 2. Mahalle Kontrolü
-                                    const mahalleUyuyor = !secilenMahalle || i["Neighborhood"] === secilenMahalle;
+                                    const mahalleUyuyor = !secilenMahalle || i["Neighborhood"] == secilenMahalle;
 
                                     // 3. Oda Kontrolü
-                                    const odaUyuyor = !secilenOda || i["Number of rooms"] === secilenOda;
+                                    const odaUyuyor = !secilenOda || i["Number of rooms"] == secilenOda;
 
                                     // 4. Metrekare Kontrolü 
                                     // (Min dediğin için "==" yerine ">=" (büyük eşit) kullanmak daha doğrudur)
                                     const m2Uyuyor = !minMetrekare || i["m² (Gross)"] >= parseInt(minMetrekare);
 
                                     // 5. Kat Kontrolü
-                                    const katUyuyor = !secilenKat || i["Floor location"] === parseInt(secilenKat);
+                                    const katUyuyor = !secilenKat || i["Floor location"] == parseInt(secilenKat);
 
                                     // HEPSİ True ise o ilanı göster
                                     return ilceUyuyor && mahalleUyuyor && odaUyuyor && m2Uyuyor && katUyuyor;

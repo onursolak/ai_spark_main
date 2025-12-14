@@ -773,8 +773,7 @@
 .ai-chat-container {
     display: flex;
     flex-direction: column;
-    height: calc(100vh - 200px);
-    max-height: calc(100vh - 200px);
+    height: calc(100vh - 265px);
     justify-content: space-between;
 }
 

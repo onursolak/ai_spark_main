@@ -141,7 +141,7 @@ export function getPropertyMainImage(property) {
     const mainImage = images.length > 0 ? images[0] : null;
     
     // Her zaman console'a yazdır
-    console.log(`📸 İlan: ${property.District}, ${property.Neighborhood} -> Resim: ${mainImage}`);
+    //console.log(`📸 İlan: ${property.District}, ${property.Neighborhood} -> Resim: ${mainImage}`);
     
     return mainImage;
 }
