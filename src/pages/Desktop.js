@@ -46,7 +46,7 @@ export default function Desktop({ viewMode, onToggleFavorite, isFavorite, onView
     const [messages, setMessages] = useState([
         { 
             sender: 'ai', 
-            text: 'Merhaba! Size nasıl bir ev bakıyoruz?' 
+            text: 'Merhaba! Ben AI emlak asistanınız. Size hayalinizdeki evi bulmanızda nasıl yardımcı olabilirim? İsterseniz kriterlerinizi yazabilir veya sol taraftaki filtreleri kullanabilirsiniz.' 
         },
     ]);
 

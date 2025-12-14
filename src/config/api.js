@@ -1,33 +1,36 @@
 // API Configuration
-export const API_BASE_URL = 'https://7d5a45fbe3b6.ngrok-free.app';
+// Production'da window.location.origin kullan, development'ta localhost
+export const API_BASE_URL = process.env.NODE_ENV === 'production' 
+    ? '' // Aynı origin'den servis edildiği için boş bırak
+    : 'http://localhost:8080';
 
 export const API_ENDPOINTS = {
     // Raw data'yı getir
-    DATA: `${API_BASE_URL}/data`,
+    DATA: `${API_BASE_URL}/api/data`,
     
     // Metadata (ilçe, mahalle dropdownlar için)
-    META: `${API_BASE_URL}/meta`,
+    META: `${API_BASE_URL}/api/meta`,
     
     // Fiyat tahmini
-    PREDICT: `${API_BASE_URL}/predict`,
+    PREDICT: `${API_BASE_URL}/api/predict`,
     
     // Ortalama fiyat modeli
-    AVERAGE: `${API_BASE_URL}/average`,
+    AVERAGE: `${API_BASE_URL}/api/average`,
     
     // İlçe karşılaştırma
-    AVERAGE_COMPARE: `${API_BASE_URL}/average/compare`,
+    AVERAGE_COMPARE: `${API_BASE_URL}/api/average/compare`,
     
     // İlçe detayları
-    AVERAGE_DISTRICT: (districtName) => `${API_BASE_URL}/average/district/${districtName}`,
+    AVERAGE_DISTRICT: (districtName) => `${API_BASE_URL}/api/average/district/${districtName}`,
     
     // Ortalama fiyat metadata
-    AVERAGE_META: `${API_BASE_URL}/average/meta`,
+    AVERAGE_META: `${API_BASE_URL}/api/average/meta`,
     
     // Gemma AI chatbot
-    ASK: `${API_BASE_URL}/ask`,
+    ASK: `${API_BASE_URL}/api/ask`,
     
     // Batch test
-    RUN_TEST: `${API_BASE_URL}/run-test`,
+    RUN_TEST: `${API_BASE_URL}/api/run-test`,
 };
 
 // API call helper fonksiyonu
